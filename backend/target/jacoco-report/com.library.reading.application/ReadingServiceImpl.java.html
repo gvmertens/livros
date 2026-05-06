@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReadingServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.reading.application</a> &gt; <span class="el_source">ReadingServiceImpl.java</span></div><h1>ReadingServiceImpl.java</h1><pre class="source lang-java linenums">package com.library.reading.application;
+
+import com.library.catalog.domain.Book;
+import com.library.reading.application.dto.BookSummary;
+import com.library.reading.application.dto.CreateReadingRequest;
+import com.library.reading.application.dto.ReadingResponse;
+import com.library.reading.application.dto.UpdateReadingRequest;
+import com.library.reading.application.event.RatingUpdatedPayload;
+import com.library.reading.application.event.ReadingCreatedPayload;
+import com.library.reading.application.event.ReviewSubmittedPayload;
+import com.library.reading.domain.Reading;
+import com.library.reading.domain.ReadingStatus;
+import com.library.shared.event.DomainEventEnvelope;
+import com.library.shared.event.EventBus;
+import com.library.shared.exception.ConflictException;
+import com.library.shared.exception.ForbiddenException;
+import com.library.shared.exception.UnprocessableEntityException;
+import com.library.shared.exception.ValidationException;
+import com.library.shared.pagination.PageRequest;
+import com.library.shared.pagination.PageResponse;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="nc" id="L31">public class ReadingServiceImpl implements ReadingService {</span>
+
+    @Inject
+    ReadingRepository readingRepository;
+
+    @Inject
+    EventBus eventBus;
+
+    @Override
+    @Transactional
+    public ReadingResponse create(UUID userId, CreateReadingRequest request) {
+        // Check for duplicate reading
+<span class="nc" id="L43">        readingRepository.findByUserIdAndBookId(userId, request.bookId()).ifPresent(existing -&gt; {</span>
+<span class="nc" id="L44">            throw new ConflictException(&quot;Reading already exists for this book&quot;);</span>
+        });
+
+        // Validate book exists
+<span class="nc" id="L48">        Book book = (Book) Book.findByIdOptional(request.bookId())</span>
+<span class="nc" id="L49">                .orElseThrow(() -&gt; new UnprocessableEntityException(&quot;Book not found: &quot; + request.bookId()));</span>
+
+<span class="nc" id="L51">        Reading reading = new Reading();</span>
+<span class="nc" id="L52">        reading.userId = userId;</span>
+<span class="nc" id="L53">        reading.bookId = request.bookId();</span>
+<span class="nc" id="L54">        reading.status = ReadingStatus.WANT_TO_READ;</span>
+<span class="nc" id="L55">        readingRepository.persist(reading);</span>
+
+<span class="nc" id="L57">        eventBus.publish(new DomainEventEnvelope(</span>
+<span class="nc" id="L58">                UUID.randomUUID(),</span>
+                &quot;reading.created&quot;,
+<span class="nc" id="L60">                Instant.now(),</span>
+<span class="nc" id="L61">                new ReadingCreatedPayload(reading.id, reading.userId, reading.bookId, reading.status.name())));</span>
+
+<span class="nc" id="L63">        return toResponse(reading, new BookSummary(book.id, book.title));</span>
+    }
+
+    @Override
+    @Transactional
+    public ReadingResponse update(UUID requestingUserId, UUID readingId, UpdateReadingRequest request, boolean isAdmin) {
+<span class="nc" id="L69">        Reading reading = readingRepository.findByIdOrThrow(readingId);</span>
+
+        // Ownership check
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (!requestingUserId.equals(reading.userId) &amp;&amp; !isAdmin) {</span>
+<span class="nc" id="L73">            throw ForbiddenException.accessDenied();</span>
+        }
+
+        // Validate rating if provided
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (request.rating() != null) {</span>
+<span class="nc" id="L78">            BigDecimal rating = request.rating();</span>
+<span class="nc bnc" id="L79" title="All 4 branches missed.">            if (rating.compareTo(BigDecimal.ZERO) &lt; 0 || rating.compareTo(new BigDecimal(&quot;10.0&quot;)) &gt; 0) {</span>
+<span class="nc" id="L80">                throw new ValidationException(&quot;Rating must be between 0.0 and 10.0&quot;);</span>
+            }
+        }
+
+        // Determine effective status after update
+<span class="nc" id="L85">        ReadingStatus newStatus = reading.status;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (request.status() != null) {</span>
+            try {
+<span class="nc" id="L88">                newStatus = ReadingStatus.valueOf(request.status());</span>
+<span class="nc" id="L89">            } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L90">                throw new ValidationException(&quot;Invalid status: &quot; + request.status());</span>
+<span class="nc" id="L91">            }</span>
+        }
+
+        // Determine effective startedAt after update
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        Instant effectiveStartedAt = request.startedAt() != null ? request.startedAt() : reading.startedAt;</span>
+
+        // Validate FINISHED requires startedAt
+<span class="nc bnc" id="L98" title="All 4 branches missed.">        if (newStatus == ReadingStatus.FINISHED &amp;&amp; effectiveStartedAt == null) {</span>
+<span class="nc" id="L99">            throw new ValidationException(&quot;startedAt is required when status is FINISHED&quot;);</span>
+        }
+
+        // Track changes for events
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        boolean ratingChanged = request.rating() != null</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                &amp;&amp; !request.rating().equals(reading.rating);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        boolean reviewChanged = request.review() != null</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                &amp;&amp; !request.review().equals(reading.review);</span>
+
+        // Apply updates
+<span class="nc" id="L109">        reading.status = newStatus;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (request.rating() != null) {</span>
+<span class="nc" id="L111">            reading.rating = request.rating();</span>
+        }
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (request.review() != null) {</span>
+<span class="nc" id="L114">            reading.review = request.review();</span>
+        }
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (request.startedAt() != null) {</span>
+<span class="nc" id="L117">            reading.startedAt = request.startedAt();</span>
+        }
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (request.finishedAt() != null) {</span>
+<span class="nc" id="L120">            reading.finishedAt = request.finishedAt();</span>
+        }
+
+<span class="nc" id="L123">        readingRepository.persist(reading);</span>
+
+        // Publish events conditionally
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (ratingChanged) {</span>
+<span class="nc" id="L127">            eventBus.publish(new DomainEventEnvelope(</span>
+<span class="nc" id="L128">                    UUID.randomUUID(),</span>
+                    &quot;rating.updated&quot;,
+<span class="nc" id="L130">                    Instant.now(),</span>
+                    new RatingUpdatedPayload(reading.id, reading.userId, reading.bookId, reading.rating)));
+        }
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (reviewChanged) {</span>
+<span class="nc" id="L134">            eventBus.publish(new DomainEventEnvelope(</span>
+<span class="nc" id="L135">                    UUID.randomUUID(),</span>
+                    &quot;review.submitted&quot;,
+<span class="nc" id="L137">                    Instant.now(),</span>
+                    new ReviewSubmittedPayload(reading.id, reading.userId, reading.bookId, reading.review)));
+        }
+
+<span class="nc" id="L141">        Book book = (Book) Book.findByIdOptional(reading.bookId)</span>
+<span class="nc" id="L142">                .orElse(null);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        BookSummary bookSummary = book != null</span>
+<span class="nc" id="L144">                ? new BookSummary(book.id, book.title)</span>
+<span class="nc" id="L145">                : new BookSummary(reading.bookId, null);</span>
+
+<span class="nc" id="L147">        return toResponse(reading, bookSummary);</span>
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID requestingUserId, UUID readingId, boolean isAdmin) {
+<span class="nc" id="L153">        Reading reading = readingRepository.findByIdOrThrow(readingId);</span>
+
+<span class="nc bnc" id="L155" title="All 4 branches missed.">        if (!requestingUserId.equals(reading.userId) &amp;&amp; !isAdmin) {</span>
+<span class="nc" id="L156">            throw ForbiddenException.accessDenied();</span>
+        }
+
+<span class="nc" id="L159">        readingRepository.delete(reading);</span>
+<span class="nc" id="L160">    }</span>
+
+    @Override
+    public PageResponse&lt;ReadingResponse&gt; listForUser(UUID userId, ReadingStatus statusFilter, PageRequest page) {
+<span class="nc" id="L164">        PageResponse&lt;Reading&gt; readingsPage = readingRepository.findByUserId(userId, statusFilter, page);</span>
+
+<span class="nc" id="L166">        List&lt;ReadingResponse&gt; content = readingsPage.content().stream()</span>
+<span class="nc" id="L167">                .map(reading -&gt; {</span>
+<span class="nc" id="L168">                    Book book = (Book) Book.findByIdOptional(reading.bookId).orElse(null);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                    BookSummary bookSummary = book != null</span>
+<span class="nc" id="L170">                            ? new BookSummary(book.id, book.title)</span>
+<span class="nc" id="L171">                            : new BookSummary(reading.bookId, null);</span>
+<span class="nc" id="L172">                    return toResponse(reading, bookSummary);</span>
+                })
+<span class="nc" id="L174">                .toList();</span>
+
+<span class="nc" id="L176">        return new PageResponse&lt;&gt;(content, readingsPage.totalElements(), readingsPage.totalPages(),</span>
+<span class="nc" id="L177">                readingsPage.page(), readingsPage.size());</span>
+    }
+
+    @Override
+    public ReadingResponse getById(UUID requestingUserId, UUID readingId) {
+<span class="nc" id="L182">        Reading reading = readingRepository.findByIdOrThrow(readingId);</span>
+
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (!requestingUserId.equals(reading.userId)) {</span>
+<span class="nc" id="L185">            throw ForbiddenException.accessDenied();</span>
+        }
+
+<span class="nc" id="L188">        Book book = (Book) Book.findByIdOptional(reading.bookId).orElse(null);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        BookSummary bookSummary = book != null</span>
+<span class="nc" id="L190">                ? new BookSummary(book.id, book.title)</span>
+<span class="nc" id="L191">                : new BookSummary(reading.bookId, null);</span>
+
+<span class="nc" id="L193">        return toResponse(reading, bookSummary);</span>
+    }
+
+    private ReadingResponse toResponse(Reading reading, BookSummary bookSummary) {
+<span class="nc" id="L197">        return new ReadingResponse(</span>
+                reading.id,
+                bookSummary,
+<span class="nc" id="L200">                reading.status.name(),</span>
+                reading.rating,
+                reading.review,
+                reading.startedAt,
+                reading.finishedAt,
+                reading.createdAt,
+                reading.updatedAt);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

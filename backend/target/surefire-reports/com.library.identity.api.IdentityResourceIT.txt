@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.library.identity.api.IdentityResourceIT
+-------------------------------------------------------------------------------
+Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 33.60 s -- in com.library.identity.api.IdentityResourceIT

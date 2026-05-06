@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.shared.exception</a> &gt; <span class="el_source">GlobalExceptionMapper.java</span></div><h1>GlobalExceptionMapper.java</h1><pre class="source lang-java linenums">package com.library.shared.exception;
+
+import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
+import org.jboss.logging.Logger;
+import org.jboss.logging.MDC;
+
+import java.util.stream.Collectors;
+
+/**
+ * Global JAX-RS exception mapper that converts all exceptions into a consistent
+ * {@link ErrorResponse} JSON body.
+ *
+ * &lt;p&gt;Mapping rules:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@link AppException} subclasses → their declared HTTP status&lt;/li&gt;
+ *   &lt;li&gt;{@link ConstraintViolationException} → 400 with field-level messages&lt;/li&gt;
+ *   &lt;li&gt;Everything else → 500 (stack trace logged, not exposed to client)&lt;/li&gt;
+ * &lt;/ul&gt;
+ */
+@Provider
+<span class="fc" id="L24">public class GlobalExceptionMapper implements ExceptionMapper&lt;Throwable&gt; {</span>
+
+<span class="fc" id="L26">    private static final Logger LOG = Logger.getLogger(GlobalExceptionMapper.class);</span>
+
+    @Override
+    public Response toResponse(Throwable ex) {
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (ex instanceof AppException appEx) {</span>
+<span class="fc" id="L31">            return errorResponse(appEx.getStatus(), appEx.getMessage());</span>
+        }
+
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (ex instanceof ConstraintViolationException cve) {</span>
+<span class="nc" id="L35">            String message = cve.getConstraintViolations().stream()</span>
+<span class="nc" id="L36">                    .map(v -&gt; v.getPropertyPath() + &quot;: &quot; + v.getMessage())</span>
+<span class="nc" id="L37">                    .collect(Collectors.joining(&quot;, &quot;));</span>
+<span class="nc" id="L38">            return errorResponse(400, message);</span>
+        }
+
+<span class="fc" id="L41">        LOG.errorf(ex, &quot;Unhandled exception [correlationId=%s]&quot;, MDC.get(&quot;correlationId&quot;));</span>
+<span class="fc" id="L42">        return errorResponse(500, &quot;Internal server error&quot;);</span>
+    }
+
+    private Response errorResponse(int status, String message) {
+<span class="fc" id="L46">        return Response.status(status)</span>
+<span class="fc" id="L47">                .entity(ErrorResponse.of(status, message))</span>
+<span class="fc" id="L48">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

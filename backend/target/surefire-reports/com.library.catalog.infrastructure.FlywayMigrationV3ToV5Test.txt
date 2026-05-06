@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.library.catalog.infrastructure.FlywayMigrationV3ToV5Test
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 40.56 s -- in com.library.catalog.infrastructure.FlywayMigrationV3ToV5Test

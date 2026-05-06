@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.identity.application</a> &gt; <span class="el_source">ProfileServiceImpl.java</span></div><h1>ProfileServiceImpl.java</h1><pre class="source lang-java linenums">package com.library.identity.application;
+
+import com.library.identity.application.dto.ProfileResponse;
+import com.library.identity.application.dto.ProfileUpdateRequest;
+import com.library.identity.domain.Profile;
+import com.library.shared.exception.ForbiddenException;
+import com.library.shared.exception.NotFoundException;
+import com.library.shared.exception.ValidationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L16">public class ProfileServiceImpl implements ProfileService {</span>
+
+    @Inject
+    ProfileRepository profileRepository;
+
+    @Override
+    public ProfileResponse getProfile(UUID requestingUserId, UUID profileOwnerId) {
+<span class="pc bpc" id="L23" title="1 of 2 branches missed.">        if (!requestingUserId.equals(profileOwnerId)) {</span>
+<span class="nc" id="L24">            throw ForbiddenException.accessDenied();</span>
+        }
+
+<span class="fc" id="L27">        Profile profile = profileRepository.findByUserId(profileOwnerId)</span>
+<span class="pc" id="L28">                .orElseThrow(() -&gt; NotFoundException.of(&quot;Profile&quot;, profileOwnerId));</span>
+
+<span class="fc" id="L30">        return toProfileResponse(profile);</span>
+    }
+
+    @Override
+    @Transactional
+    public ProfileResponse updateProfile(UUID userId, ProfileUpdateRequest request) {
+<span class="pc bpc" id="L36" title="2 of 4 branches missed.">        if (request.displayName() != null &amp;&amp; request.displayName().length() &gt; 100) {</span>
+<span class="nc" id="L37">            throw new ValidationException(&quot;Display name must be 100 characters or fewer&quot;);</span>
+        }
+
+<span class="pc bpc" id="L40" title="2 of 4 branches missed.">        if (request.bio() != null &amp;&amp; request.bio().length() &gt; 1000) {</span>
+<span class="nc" id="L41">            throw new ValidationException(&quot;Bio must be 1000 characters or fewer&quot;);</span>
+        }
+
+<span class="fc" id="L44">        Profile profile = profileRepository.findByUserId(userId)</span>
+<span class="pc" id="L45">                .orElseThrow(() -&gt; NotFoundException.of(&quot;Profile&quot;, userId));</span>
+
+<span class="fc" id="L47">        profile.displayName = request.displayName();</span>
+<span class="fc" id="L48">        profile.bio = request.bio();</span>
+<span class="fc" id="L49">        profile.favoriteGenres = request.favoriteGenres();</span>
+<span class="fc" id="L50">        profileRepository.persist(profile);</span>
+
+<span class="fc" id="L52">        return toProfileResponse(profile);</span>
+    }
+
+    private ProfileResponse toProfileResponse(Profile profile) {
+<span class="fc" id="L56">        return new ProfileResponse(</span>
+                profile.id,
+                profile.userId,
+                profile.displayName,
+                profile.bio,
+                profile.favoriteGenres,
+                profile.createdAt,
+                profile.updatedAt);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

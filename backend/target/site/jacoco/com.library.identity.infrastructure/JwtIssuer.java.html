@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtIssuer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.identity.infrastructure</a> &gt; <span class="el_source">JwtIssuer.java</span></div><h1>JwtIssuer.java</h1><pre class="source lang-java linenums">package com.library.identity.infrastructure;
+
+import com.library.identity.domain.User;
+import io.smallrye.jwt.build.Jwt;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.time.Instant;
+import java.util.Set;
+
+/**
+ * Issues RS256-signed JWTs for authenticated users.
+ *
+ * &lt;p&gt;Token claims:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@code sub} — user UUID as string&lt;/li&gt;
+ *   &lt;li&gt;{@code email} — user email&lt;/li&gt;
+ *   &lt;li&gt;{@code groups} — singleton set containing the user's role (SmallRye role claim)&lt;/li&gt;
+ *   &lt;li&gt;{@code iss} — {@code personal-library-manager}&lt;/li&gt;
+ *   &lt;li&gt;{@code exp} — {@code iat + 3600} (1 hour)&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;The signing key is read from {@code smallrye.jwt.sign.key.location} in
+ * {@code application.properties} (defaults to {@code META-INF/resources/privateKey.pem}).
+ */
+@ApplicationScoped
+<span class="fc" id="L26">public class JwtIssuer {</span>
+
+    private static final String ISSUER = &quot;personal-library-manager&quot;;
+    private static final long EXPIRY_SECONDS = 3600L;
+
+    /**
+     * Issues a signed JWT for the given user.
+     *
+     * @param user the authenticated user
+     * @return signed JWT string
+     */
+    public String issue(User user) {
+<span class="fc" id="L38">        Instant now = Instant.now();</span>
+<span class="fc" id="L39">        return Jwt.issuer(ISSUER)</span>
+<span class="fc" id="L40">                .subject(user.id.toString())</span>
+<span class="fc" id="L41">                .claim(&quot;email&quot;, user.email)</span>
+<span class="fc" id="L42">                .groups(Set.of(user.role.name()))</span>
+<span class="fc" id="L43">                .issuedAt(now)</span>
+<span class="fc" id="L44">                .expiresAt(now.plusSeconds(EXPIRY_SECONDS))</span>
+<span class="fc" id="L45">                .sign();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

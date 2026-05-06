@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.library.catalog.api.CatalogResourceIT
+-------------------------------------------------------------------------------
+Tests run: 39, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 183.5 s -- in com.library.catalog.api.CatalogResourceIT

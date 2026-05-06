@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CorrelationIdFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.shared.filter</a> &gt; <span class="el_source">CorrelationIdFilter.java</span></div><h1>CorrelationIdFilter.java</h1><pre class="source lang-java linenums">package com.library.shared.filter;
+
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
+import org.jboss.logging.MDC;
+
+import java.io.IOException;
+import java.util.UUID;
+
+/**
+ * JAX-RS filter that assigns a correlation ID to every request.
+ *
+ * &lt;p&gt;On request: reads {@code X-Correlation-ID} header; generates a UUID if absent.
+ * Stores the ID in MDC so all log statements for the request include it automatically.
+ *
+ * &lt;p&gt;On response: echoes the correlation ID back in the {@code X-Correlation-ID} header.
+ */
+@Provider
+<span class="fc" id="L22">public class CorrelationIdFilter implements ContainerRequestFilter, ContainerResponseFilter {</span>
+
+    public static final String CORRELATION_ID_HEADER = &quot;X-Correlation-ID&quot;;
+    private static final String MDC_KEY = &quot;correlationId&quot;;
+
+    @Override
+    public void filter(ContainerRequestContext requestContext) throws IOException {
+<span class="fc" id="L29">        String correlationId = requestContext.getHeaderString(CORRELATION_ID_HEADER);</span>
+<span class="pc bpc" id="L30" title="3 of 4 branches missed.">        if (correlationId == null || correlationId.isBlank()) {</span>
+<span class="fc" id="L31">            correlationId = UUID.randomUUID().toString();</span>
+        }
+<span class="fc" id="L33">        MDC.put(MDC_KEY, correlationId);</span>
+        // Store on request context so the response filter can read it
+<span class="fc" id="L35">        requestContext.setProperty(MDC_KEY, correlationId);</span>
+<span class="fc" id="L36">    }</span>
+
+    @Override
+    public void filter(ContainerRequestContext requestContext,
+                       ContainerResponseContext responseContext) throws IOException {
+<span class="fc" id="L41">        Object correlationId = requestContext.getProperty(MDC_KEY);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (correlationId != null) {</span>
+<span class="fc" id="L43">            responseContext.getHeaders().putSingle(CORRELATION_ID_HEADER, correlationId.toString());</span>
+        }
+<span class="fc" id="L45">        MDC.remove(MDC_KEY);</span>
+<span class="fc" id="L46">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

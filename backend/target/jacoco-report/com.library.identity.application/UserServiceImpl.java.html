@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.identity.application</a> &gt; <span class="el_source">UserServiceImpl.java</span></div><h1>UserServiceImpl.java</h1><pre class="source lang-java linenums">package com.library.identity.application;
+
+import com.library.identity.application.dto.UserResponse;
+import com.library.identity.domain.Role;
+import com.library.identity.domain.User;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L13">public class UserServiceImpl implements UserService {</span>
+
+    @Inject
+    UserRepository userRepository;
+
+    @Override
+    public UserResponse getCurrentUser(UUID userId) {
+<span class="fc" id="L20">        User user = userRepository.findByIdOrThrow(userId);</span>
+<span class="fc" id="L21">        return toUserResponse(user);</span>
+    }
+
+    @Override
+    @Transactional
+    public void updateRole(UUID targetUserId, Role newRole) {
+<span class="fc" id="L27">        User user = userRepository.findByIdOrThrow(targetUserId);</span>
+<span class="fc" id="L28">        user.role = newRole;</span>
+<span class="fc" id="L29">        userRepository.persist(user);</span>
+<span class="fc" id="L30">    }</span>
+
+    private UserResponse toUserResponse(User user) {
+<span class="fc" id="L33">        return new UserResponse(user.id, user.name, user.email, user.role.name(), user.createdAt);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

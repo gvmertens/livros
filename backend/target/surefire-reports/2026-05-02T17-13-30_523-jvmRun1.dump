@@ -1,0 +1,400 @@
+# Created at 2026-05-02T17:14:34.602
+Exiting self fork JVM. Received SHUTDOWN command from Maven shutdown hook.
+Thread dump before exiting the process (10248@DESKTOP-PBQLMQM):
+"main" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/java.lang.StackTraceElement.initStackTraceElements(Native Method)
+        at java.base@21.0.3/java.lang.StackTraceElement.of(StackTraceElement.java:567)
+        at java.base@21.0.3/java.lang.Throwable.getOurStackTrace(Throwable.java:861)
+        at java.base@21.0.3/java.lang.Throwable.printEnclosedStackTrace(Throwable.java:714)
+        at java.base@21.0.3/java.lang.Throwable.printEnclosedStackTrace(Throwable.java:737)
+        at java.base@21.0.3/java.lang.Throwable.lockedPrintStackTrace(Throwable.java:696)
+        at java.base@21.0.3/java.lang.Throwable.printStackTrace(Throwable.java:673)
+        at java.base@21.0.3/java.lang.Throwable.printStackTrace(Throwable.java:660)
+        at java.base@21.0.3/java.lang.Throwable.printStackTrace(Throwable.java:651)
+        at app//org.jacoco.agent.rt.internal_4742761.IExceptionLogger$1.logExeption(IExceptionLogger.java:26)
+        at app//org.jacoco.agent.rt.internal_4742761.CoverageTransformer.transform(CoverageTransformer.java:98)
+        at java.instrument@21.0.3/java.lang.instrument.ClassFileTransformer.transform(ClassFileTransformer.java:244)
+        at java.instrument@21.0.3/sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+        at java.instrument@21.0.3/sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:610)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass1(Native Method)
+        at java.base@21.0.3/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:508)
+        at app//io.quarkus.bootstrap.classloading.QuarkusClassLoader.loadClass(QuarkusClassLoader.java:468)
+        at com.arjuna.ats.arjuna.common.CoordinatorEnvironmentBean.<init>(CoordinatorEnvironmentBean.java:75)
+        at java.base@21.0.3/java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(DirectMethodHandle$Holder)
+        at java.base@21.0.3/java.lang.invoke.Invokers$Holder.invokeExact_MT(Invokers$Holder)
+        at java.base@21.0.3/jdk.internal.reflect.DirectConstructorHandleAccessor.invokeImpl(DirectConstructorHandleAccessor.java:86)
+        at java.base@21.0.3/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+        at java.base@21.0.3/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+        at java.base@21.0.3/java.lang.reflect.ReflectAccess.newInstance(ReflectAccess.java:128)
+        at java.base@21.0.3/jdk.internal.reflect.ReflectionFactory.newInstance(ReflectionFactory.java:304)
+        at java.base@21.0.3/java.lang.Class.newInstance(Class.java:725)
+        at com.arjuna.common.internal.util.propertyservice.BeanPopulator.getNamedInstance(BeanPopulator.java:67)
+        at com.arjuna.common.internal.util.propertyservice.BeanPopulator.getDefaultInstance(BeanPopulator.java:38)
+        at com.arjuna.ats.arjuna.common.arjPropertyManager.getCoordinatorEnvironmentBean(arjPropertyManager.java:39)
+        at io.quarkus.narayana.jta.runtime.NarayanaJtaRecorder.disableTransactionStatusManager(NarayanaJtaRecorder.java:94)
+        at io.quarkus.deployment.steps.NarayanaJtaProcessor$build1091914586.deploy_0(Unknown Source)
+        at io.quarkus.deployment.steps.NarayanaJtaProcessor$build1091914586.deploy(Unknown Source)
+        at io.quarkus.runner.ApplicationImpl.doStart(Unknown Source)
+        at io.quarkus.runtime.Application.start(Application.java:101)
+        at java.base@21.0.3/java.lang.invoke.LambdaForm$DMH/0x000001f801010800.invokeSpecial(LambdaForm$DMH)
+        at java.base@21.0.3/java.lang.invoke.LambdaForm$MH/0x000001f801324000.invoke(LambdaForm$MH)
+        at java.base@21.0.3/java.lang.invoke.Invokers$Holder.invokeExact_MT(Invokers$Holder)
+        at java.base@21.0.3/jdk.internal.reflect.DirectMethodHandleAccessor.invokeImpl(DirectMethodHandleAccessor.java:154)
+        at java.base@21.0.3/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+        at java.base@21.0.3/java.lang.reflect.Method.invoke(Method.java:580)
+        at io.quarkus.runner.bootstrap.StartupActionImpl.run(StartupActionImpl.java:285)
+        at app//io.quarkus.test.junit.QuarkusTestExtension.doJavaStart(QuarkusTestExtension.java:252)
+        at app//io.quarkus.test.junit.QuarkusTestExtension.ensureStarted(QuarkusTestExtension.java:605)
+        at app//io.quarkus.test.junit.QuarkusTestExtension.beforeAll(QuarkusTestExtension.java:655)
+        at app//org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeBeforeAllCallbacks$12(ClassBasedTestDescriptor.java:396)
+        at app//org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$$Lambda/0x000001f8011429d0.execute(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+        at app//org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeBeforeAllCallbacks(ClassBasedTestDescriptor.java:396)
+        at app//org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.before(ClassBasedTestDescriptor.java:212)
+        at app//org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.before(ClassBasedTestDescriptor.java:85)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:148)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801132420.execute(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801132200.invoke(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801137a50.execute(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+        at app//org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService$$Lambda/0x000001f801133528.accept(Unknown Source)
+        at java.base@21.0.3/java.util.ArrayList.forEach(ArrayList.java:1596)
+        at app//org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801132420.execute(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801132200.invoke(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask$$Lambda/0x000001f801137a50.execute(Unknown Source)
+        at app//org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+        at app//org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+        at app//org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+        at app//org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+        at app//org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+        at app//org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+
+"Reference Handler" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/java.lang.ref.Reference.waitForReferencePendingList(Native Method)
+        at java.base@21.0.3/java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+        at java.base@21.0.3/java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+"Finalizer" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/java.lang.Object.wait0(Native Method)
+        at java.base@21.0.3/java.lang.Object.wait(Object.java:366)
+        at java.base@21.0.3/java.lang.Object.wait(Object.java:339)
+        at java.base@21.0.3/java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+        at java.base@21.0.3/java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)
+        at java.base@21.0.3/java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)
+
+"Signal Dispatcher" 
+   java.lang.Thread.State: RUNNABLE
+
+"Attach Listener" 
+   java.lang.Thread.State: RUNNABLE
+
+"Common-Cleaner" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at java.base@21.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1847)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+        at java.base@21.0.3/jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+        at java.base@21.0.3/jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)
+
+"Notification Thread" 
+   java.lang.Thread.State: RUNNABLE
+
+"surefire-forkedjvm-stream-flusher" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at java.base@21.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1758)
+        at java.base@21.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+        at java.base@21.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"surefire-forkedjvm-command-thread" 
+   java.lang.Thread.State: RUNNABLE
+        at java.management@21.0.3/sun.management.ThreadImpl.getThreadInfo1(Native Method)
+        at java.management@21.0.3/sun.management.ThreadImpl.getThreadInfo(ThreadImpl.java:187)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.generateThreadDump(ForkedBooter.java:579)
+        at app//org.apache.maven.surefire.booter.ForkedBooter.access$600(ForkedBooter.java:79)
+        at app//org.apache.maven.surefire.booter.ForkedBooter$4.update(ForkedBooter.java:315)
+        at app//org.apache.maven.surefire.booter.CommandReader$CommandRunnable.callListeners(CommandReader.java:357)
+        at app//org.apache.maven.surefire.booter.CommandReader$CommandRunnable.exitByConfiguration(CommandReader.java:367)
+        at app//org.apache.maven.surefire.booter.CommandReader$CommandRunnable.run(CommandReader.java:330)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Reference Reaper #1" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)
+        at java.base@21.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1707)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:67)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+        at java.base@21.0.3/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:234)
+        at app//io.smallrye.common.ref.References$ReaperThread.run(References.java:58)
+
+"ForkJoinPool.commonPool-worker-1" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"Quarkus hang detection timer thread" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at java.base@21.0.3/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1758)
+        at java.base@21.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1182)
+        at java.base@21.0.3/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:899)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1070)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-669" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-670" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-671" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-672" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-673" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-674" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-675" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-676" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-677" 
+   java.lang.Thread.State: RUNNABLE
+        at java.base@21.0.3/sun.nio.ch.Iocp.getQueuedCompletionStatus(Native Method)
+        at java.base@21.0.3/sun.nio.ch.Iocp$EventHandlerTask.run(Iocp.java:323)
+        at java.base@21.0.3/sun.nio.ch.AsynchronousChannelGroupImpl$1.run(AsynchronousChannelGroupImpl.java:113)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-682" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:410)
+        at java.base@21.0.3/java.util.concurrent.LinkedTransferQueue$DualNode.await(LinkedTransferQueue.java:452)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue$Transferer.xferLifo(SynchronousQueue.java:194)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue.xfer(SynchronousQueue.java:233)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:336)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1069)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"testcontainers-ryuk" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/java.lang.Object.wait0(Native Method)
+        at java.base@21.0.3/java.lang.Object.wait(Object.java:366)
+        at org.testcontainers.utility.RyukResourceReaper.lambda$null$1(RyukResourceReaper.java:115)
+        at org.testcontainers.utility.RyukResourceReaper$$Lambda/0x000001f801989df8.run(Unknown Source)
+        at org.rnorth.ducttape.ratelimits.RateLimiter.doWhenReady(RateLimiter.java:27)
+        at org.testcontainers.utility.RyukResourceReaper.lambda$maybeStart$2(RyukResourceReaper.java:101)
+        at org.testcontainers.utility.RyukResourceReaper$$Lambda/0x000001f801989bd8.run(Unknown Source)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"Thread-684" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:410)
+        at java.base@21.0.3/java.util.concurrent.LinkedTransferQueue$DualNode.await(LinkedTransferQueue.java:452)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue$Transferer.xferLifo(SynchronousQueue.java:194)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue.xfer(SynchronousQueue.java:233)
+        at java.base@21.0.3/java.util.concurrent.SynchronousQueue.poll(SynchronousQueue.java:336)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1069)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1130)
+        at java.base@21.0.3/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"ForkJoinPool.commonPool-worker-2" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"ForkJoinPool.commonPool-worker-3" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"ForkJoinPool.commonPool-worker-4" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"ForkJoinPool.commonPool-worker-5" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"ForkJoinPool.commonPool-worker-6" 
+   java.lang.Thread.State: WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.park(LockSupport.java:371)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1893)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"ForkJoinPool.commonPool-worker-7" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkUntil(LockSupport.java:449)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.awaitWork(ForkJoinPool.java:1891)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1809)
+        at java.base@21.0.3/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+
+"executor-thread-1" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/jdk.internal.misc.Unsafe.park(Native Method)
+        at java.base@21.0.3/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+        at org.jboss.threads.EnhancedQueueExecutor$PoolThreadNode.park(EnhancedQueueExecutor.java:2316)
+        at org.jboss.threads.EnhancedQueueExecutor$ThreadBody.run(EnhancedQueueExecutor.java:1582)
+        at org.jboss.threads.DelegatingRunnable.run(DelegatingRunnable.java:29)
+        at org.jboss.threads.ThreadLocalResettingRunnable.run(ThreadLocalResettingRunnable.java:29)
+        at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+        at java.base@21.0.3/java.lang.Thread.runWith(Thread.java:1596)
+        at java.base@21.0.3/java.lang.Thread.run(Thread.java:1583)
+
+"vertx-blocked-thread-checker" 
+   java.lang.Thread.State: TIMED_WAITING
+        at java.base@21.0.3/java.lang.Object.wait0(Native Method)
+        at java.base@21.0.3/java.lang.Object.wait(Object.java:366)
+        at java.base@21.0.3/java.util.TimerThread.mainLoop(Timer.java:563)
+        at java.base@21.0.3/java.util.TimerThread.run(Timer.java:516)
+
+
+

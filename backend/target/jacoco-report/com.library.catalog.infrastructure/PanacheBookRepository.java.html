@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PanacheBookRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.catalog.infrastructure</a> &gt; <span class="el_source">PanacheBookRepository.java</span></div><h1>PanacheBookRepository.java</h1><pre class="source lang-java linenums">package com.library.catalog.infrastructure;
+
+import com.library.catalog.application.BookRepository;
+import com.library.catalog.application.dto.AuthorResponse;
+import com.library.catalog.application.dto.BookResponse;
+import com.library.catalog.application.dto.PublisherResponse;
+import com.library.catalog.domain.Book;
+import com.library.shared.exception.NotFoundException;
+import com.library.shared.pagination.PageRequest;
+import com.library.shared.pagination.PageResponse;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import io.quarkus.panache.common.Parameters;
+import io.quarkus.panache.common.Sort;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L21">public class PanacheBookRepository implements BookRepository, PanacheRepositoryBase&lt;Book, UUID&gt; {</span>
+
+    @Override
+    public Optional&lt;Book&gt; findByIsbn(String isbn) {
+<span class="fc" id="L25">        return find(&quot;isbn&quot;, isbn).firstResultOptional();</span>
+    }
+
+    @Override
+    public Optional&lt;Book&gt; findByIdOptional(UUID id) {
+<span class="fc" id="L30">        return Optional.ofNullable(getEntityManager().find(Book.class, id));</span>
+    }
+
+    @Override
+    public Book findByIdOrThrow(UUID id) {
+<span class="fc" id="L35">        return findByIdOptional(id)</span>
+<span class="fc" id="L36">                .orElseThrow(() -&gt; NotFoundException.of(&quot;Book&quot;, id));</span>
+    }
+
+    @Override
+    public PageResponse&lt;BookResponse&gt; search(String query, PageRequest page) {
+        io.quarkus.hibernate.orm.panache.PanacheQuery&lt;Book&gt; pager;
+<span class="pc bpc" id="L42" title="1 of 4 branches missed.">        if (query == null || query.isBlank()) {</span>
+<span class="fc" id="L43">            pager = findAll(Sort.ascending(&quot;title&quot;)).page(page.page(), page.size());</span>
+        } else {
+<span class="fc" id="L45">            String q = &quot;%&quot; + query.toLowerCase() + &quot;%&quot;;</span>
+<span class="fc" id="L46">            pager = find(</span>
+                    &quot;SELECT b FROM Book b JOIN b.author a WHERE LOWER(b.title) LIKE :q OR LOWER(a.name) LIKE :q ORDER BY b.title ASC&quot;,
+<span class="fc" id="L48">                    Parameters.with(&quot;q&quot;, q))</span>
+<span class="fc" id="L49">                    .page(page.page(), page.size());</span>
+        }
+<span class="fc" id="L51">        List&lt;Book&gt; books = pager.list();</span>
+<span class="fc" id="L52">        long total = pager.count();</span>
+<span class="fc" id="L53">        List&lt;BookResponse&gt; content = books.stream()</span>
+<span class="fc" id="L54">                .map(this::toBookResponse)</span>
+<span class="fc" id="L55">                .toList();</span>
+<span class="fc" id="L56">        return PageResponse.of(content, total, page);</span>
+    }
+
+    @Override
+    public void persist(Book book) {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (book.id == null) {</span>
+<span class="fc" id="L62">            getEntityManager().persist(book);</span>
+        } else {
+<span class="fc" id="L64">            getEntityManager().merge(book);</span>
+        }
+<span class="fc" id="L66">    }</span>
+
+    @Override
+    public void delete(Book book) {
+<span class="fc" id="L70">        getEntityManager().remove(</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                getEntityManager().contains(book) ? book : getEntityManager().merge(book));</span>
+<span class="fc" id="L72">    }</span>
+
+    private BookResponse toBookResponse(Book book) {
+<span class="fc" id="L75">        AuthorResponse authorResponse = new AuthorResponse(</span>
+                book.author.id, book.author.name, book.author.createdAt, book.author.updatedAt);
+<span class="fc" id="L77">        PublisherResponse publisherResponse = new PublisherResponse(</span>
+                book.publisher.id, book.publisher.name, book.publisher.createdAt, book.publisher.updatedAt);
+<span class="fc" id="L79">        return new BookResponse(</span>
+                book.id, book.isbn, book.title,
+                authorResponse, publisherResponse,
+                book.createdAt, book.updatedAt);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

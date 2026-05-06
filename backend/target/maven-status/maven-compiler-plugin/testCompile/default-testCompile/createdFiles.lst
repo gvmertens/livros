@@ -1,0 +1,14 @@
+com\library\shared\pagination\PageRequestTest.class
+com\library\shared\exception\ErrorResponseTest.class
+com\library\catalog\application\PublisherServiceImplTest.class
+com\library\identity\api\IdentityResourceIT.class
+com\library\infrastructure\TestEventObserver.class
+com\library\catalog\api\CatalogResourceIT.class
+com\library\catalog\application\AuthorServiceImplTest.class
+com\library\shared\exception\AppExceptionHierarchyTest.class
+com\library\shared\pagination\PageResponseTest.class
+com\library\catalog\infrastructure\FlywayMigrationV3ToV5Test.class
+com\library\shared\HealthCheckIT.class
+com\library\infrastructure\PostgresTestResource.class
+com\library\catalog\application\BookServiceImplTest.class
+com\library\catalog\api\dto\CatalogDtoMappingTest.class

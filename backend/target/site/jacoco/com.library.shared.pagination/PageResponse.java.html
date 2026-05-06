@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PageResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.shared.pagination</a> &gt; <span class="el_source">PageResponse.java</span></div><h1>PageResponse.java</h1><pre class="source lang-java linenums">package com.library.shared.pagination;
+
+import java.util.List;
+
+/**
+ * Paginated response wrapper returned by all list endpoints.
+ *
+ * @param &lt;T&gt;           the type of items in the page
+ * @param content       items on the current page
+ * @param totalElements total number of items across all pages
+ * @param totalPages    total number of pages
+ * @param page          current zero-based page index
+ * @param size          page size used for this response
+ */
+<span class="fc" id="L15">public record PageResponse&lt;T&gt;(</span>
+        List&lt;T&gt; content,
+        long totalElements,
+        int totalPages,
+        int page,
+        int size
+) {
+
+    public static &lt;T&gt; PageResponse&lt;T&gt; of(List&lt;T&gt; content, long totalElements, PageRequest request) {
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">        int totalPages = request.size() == 0 ? 0</span>
+<span class="fc" id="L25">                : (int) Math.ceil((double) totalElements / request.size());</span>
+<span class="fc" id="L26">        return new PageResponse&lt;&gt;(content, totalElements, totalPages, request.page(), request.size());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

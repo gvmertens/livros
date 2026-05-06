@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublisherResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.catalog.api</a> &gt; <span class="el_source">PublisherResource.java</span></div><h1>PublisherResource.java</h1><pre class="source lang-java linenums">package com.library.catalog.api;
+
+import com.library.catalog.api.dto.PublisherRequest;
+import com.library.catalog.api.dto.PublisherResponse;
+import com.library.catalog.application.PublisherService;
+import com.library.shared.pagination.PageRequest;
+import com.library.shared.pagination.PageResponse;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import java.util.UUID;
+
+@Path(&quot;/api/v1/publishers&quot;)
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+<span class="fc" id="L20">public class PublisherResource {</span>
+
+    @Inject
+    PublisherService publisherService;
+
+    @POST
+    @RolesAllowed(&quot;ADMIN&quot;)
+    public Response create(@Valid PublisherRequest request) {
+<span class="fc" id="L28">        var appRequest = new com.library.catalog.application.dto.PublisherRequest(request.name());</span>
+<span class="fc" id="L29">        var appResponse = publisherService.create(appRequest);</span>
+<span class="fc" id="L30">        var apiResponse = toApiResponse(appResponse);</span>
+<span class="fc" id="L31">        return Response.status(201).entity(apiResponse).build();</span>
+    }
+
+    @GET
+    @RolesAllowed({&quot;USER&quot;, &quot;ADMIN&quot;})
+    public Response list(
+            @QueryParam(&quot;page&quot;) @DefaultValue(&quot;0&quot;) int page,
+            @QueryParam(&quot;size&quot;) @DefaultValue(&quot;20&quot;) int size) {
+<span class="fc" id="L39">        PageRequest pageRequest = PageRequest.of(page, size);</span>
+<span class="fc" id="L40">        PageResponse&lt;com.library.catalog.application.dto.PublisherResponse&gt; appPage = publisherService.list(pageRequest);</span>
+<span class="fc" id="L41">        PageResponse&lt;PublisherResponse&gt; apiPage = mapPage(appPage);</span>
+<span class="fc" id="L42">        return Response.ok(apiPage).build();</span>
+    }
+
+    @GET
+    @Path(&quot;/{id}&quot;)
+    @RolesAllowed({&quot;USER&quot;, &quot;ADMIN&quot;})
+    public Response getById(@PathParam(&quot;id&quot;) UUID id) {
+<span class="nc" id="L49">        var appResponse = publisherService.getById(id);</span>
+<span class="nc" id="L50">        return Response.ok(toApiResponse(appResponse)).build();</span>
+    }
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    @RolesAllowed(&quot;ADMIN&quot;)
+    public Response update(@PathParam(&quot;id&quot;) UUID id, @Valid PublisherRequest request) {
+<span class="fc" id="L57">        var appRequest = new com.library.catalog.application.dto.PublisherRequest(request.name());</span>
+<span class="fc" id="L58">        var appResponse = publisherService.update(id, appRequest);</span>
+<span class="fc" id="L59">        return Response.ok(toApiResponse(appResponse)).build();</span>
+    }
+
+    @DELETE
+    @Path(&quot;/{id}&quot;)
+    @RolesAllowed(&quot;ADMIN&quot;)
+    public Response delete(@PathParam(&quot;id&quot;) UUID id) {
+<span class="fc" id="L66">        publisherService.delete(id);</span>
+<span class="fc" id="L67">        return Response.noContent().build();</span>
+    }
+
+    private PublisherResponse toApiResponse(com.library.catalog.application.dto.PublisherResponse app) {
+<span class="fc" id="L71">        return new PublisherResponse(app.id(), app.name(), app.createdAt(), app.updatedAt());</span>
+    }
+
+    private PageResponse&lt;PublisherResponse&gt; mapPage(PageResponse&lt;com.library.catalog.application.dto.PublisherResponse&gt; appPage) {
+<span class="fc" id="L75">        var content = appPage.content().stream().map(this::toApiResponse).toList();</span>
+<span class="fc" id="L76">        return new PageResponse&lt;&gt;(content, appPage.totalElements(), appPage.totalPages(), appPage.page(), appPage.size());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

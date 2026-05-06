@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.identity.application</a> &gt; <span class="el_source">AuthServiceImpl.java</span></div><h1>AuthServiceImpl.java</h1><pre class="source lang-java linenums">package com.library.identity.application;
+
+import com.library.identity.application.dto.LoginRequest;
+import com.library.identity.application.dto.LoginResponse;
+import com.library.identity.application.dto.RegisterRequest;
+import com.library.identity.application.dto.UserResponse;
+import com.library.identity.application.event.UserCreatedPayload;
+import com.library.identity.domain.Profile;
+import com.library.identity.domain.Role;
+import com.library.identity.domain.User;
+import com.library.identity.infrastructure.BcryptPasswordEncoder;
+import com.library.identity.infrastructure.JwtIssuer;
+import com.library.shared.event.DomainEventEnvelope;
+import com.library.shared.event.EventBus;
+import com.library.shared.exception.ConflictException;
+import com.library.shared.exception.UnauthorizedException;
+import com.library.shared.exception.ValidationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L26">public class AuthServiceImpl implements AuthService {</span>
+
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    ProfileRepository profileRepository;
+
+    @Inject
+    BcryptPasswordEncoder passwordEncoder;
+
+    @Inject
+    JwtIssuer jwtIssuer;
+
+    @Inject
+    EventBus eventBus;
+
+    @Override
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (userRepository.findByEmail(request.email()).isPresent()) {</span>
+<span class="fc" id="L47">            throw new ConflictException(&quot;Email already in use: &quot; + request.email());</span>
+        }
+
+<span class="pc bpc" id="L50" title="2 of 4 branches missed.">        if (request.password() == null || request.password().length() &lt; 8) {</span>
+<span class="nc" id="L51">            throw new ValidationException(&quot;Password must be at least 8 characters&quot;);</span>
+        }
+
+<span class="fc" id="L54">        User user = new User();</span>
+<span class="fc" id="L55">        user.name = request.name();</span>
+<span class="fc" id="L56">        user.email = request.email();</span>
+<span class="fc" id="L57">        user.passwordHash = passwordEncoder.encode(request.password());</span>
+<span class="fc" id="L58">        user.role = Role.USER;</span>
+<span class="fc" id="L59">        userRepository.persist(user);</span>
+
+<span class="fc" id="L61">        Profile profile = new Profile();</span>
+<span class="fc" id="L62">        profile.userId = user.id;</span>
+<span class="fc" id="L63">        profile.displayName = null;</span>
+<span class="fc" id="L64">        profile.bio = null;</span>
+<span class="fc" id="L65">        profile.favoriteGenres = null;</span>
+<span class="fc" id="L66">        profileRepository.persist(profile);</span>
+
+<span class="fc" id="L68">        UserCreatedPayload payload = new UserCreatedPayload(user.id, user.email, user.createdAt);</span>
+<span class="fc" id="L69">        eventBus.publish(new DomainEventEnvelope(</span>
+<span class="fc" id="L70">                UUID.randomUUID(),</span>
+                &quot;user.created&quot;,
+<span class="fc" id="L72">                Instant.now(),</span>
+                payload));
+
+<span class="fc" id="L75">        return toUserResponse(user);</span>
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+<span class="fc" id="L80">        User user = userRepository.findByEmail(request.email())</span>
+<span class="fc" id="L81">                .orElseThrow(UnauthorizedException::invalidCredentials);</span>
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (!passwordEncoder.matches(request.password(), user.passwordHash)) {</span>
+<span class="fc" id="L84">            throw UnauthorizedException.invalidCredentials();</span>
+        }
+
+<span class="fc" id="L87">        String token = jwtIssuer.issue(user);</span>
+<span class="fc" id="L88">        return new LoginResponse(token, 3600L);</span>
+    }
+
+    private UserResponse toUserResponse(User user) {
+<span class="fc" id="L92">        return new UserResponse(user.id, user.name, user.email, user.role.name(), user.createdAt);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

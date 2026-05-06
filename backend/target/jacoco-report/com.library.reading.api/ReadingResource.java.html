@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReadingResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.reading.api</a> &gt; <span class="el_source">ReadingResource.java</span></div><h1>ReadingResource.java</h1><pre class="source lang-java linenums">package com.library.reading.api;
+
+import com.library.reading.api.dto.BookSummary;
+import com.library.reading.api.dto.CreateReadingRequest;
+import com.library.reading.api.dto.ReadingResponse;
+import com.library.reading.api.dto.UpdateReadingRequest;
+import com.library.reading.application.ReadingService;
+import com.library.reading.domain.ReadingStatus;
+import com.library.shared.exception.ValidationException;
+import com.library.shared.pagination.PageRequest;
+import com.library.shared.pagination.PageResponse;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+
+import java.util.UUID;
+
+@Path(&quot;/api/v1/readings&quot;)
+@RolesAllowed({&quot;USER&quot;, &quot;ADMIN&quot;})
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+<span class="nc" id="L27">public class ReadingResource {</span>
+
+    @Inject
+    ReadingService readingService;
+
+    @POST
+    public Response create(@Valid CreateReadingRequest request, @Context SecurityContext sec) {
+<span class="nc" id="L34">        UUID userId = UUID.fromString(sec.getUserPrincipal().getName());</span>
+<span class="nc" id="L35">        var appRequest = new com.library.reading.application.dto.CreateReadingRequest(request.bookId());</span>
+<span class="nc" id="L36">        var appResponse = readingService.create(userId, appRequest);</span>
+<span class="nc" id="L37">        return Response.status(201).entity(toApiResponse(appResponse)).build();</span>
+    }
+
+    @GET
+    public Response list(
+            @QueryParam(&quot;page&quot;) @DefaultValue(&quot;0&quot;) int page,
+            @QueryParam(&quot;size&quot;) @DefaultValue(&quot;20&quot;) int size,
+            @QueryParam(&quot;status&quot;) String status,
+            @Context SecurityContext sec) {
+<span class="nc" id="L46">        UUID userId = UUID.fromString(sec.getUserPrincipal().getName());</span>
+
+        PageRequest pageRequest;
+        try {
+<span class="nc" id="L50">            pageRequest = PageRequest.of(page, size);</span>
+<span class="nc" id="L51">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L52">            throw new ValidationException(e.getMessage());</span>
+<span class="nc" id="L53">        }</span>
+
+<span class="nc" id="L55">        ReadingStatus statusFilter = null;</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (status != null &amp;&amp; !status.isBlank()) {</span>
+            try {
+<span class="nc" id="L58">                statusFilter = ReadingStatus.valueOf(status);</span>
+<span class="nc" id="L59">            } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L60">                throw new ValidationException(&quot;Invalid status: &quot; + status);</span>
+<span class="nc" id="L61">            }</span>
+        }
+
+<span class="nc" id="L64">        PageResponse&lt;com.library.reading.application.dto.ReadingResponse&gt; appPage =</span>
+<span class="nc" id="L65">                readingService.listForUser(userId, statusFilter, pageRequest);</span>
+
+<span class="nc" id="L67">        PageResponse&lt;ReadingResponse&gt; apiPage = mapPage(appPage);</span>
+<span class="nc" id="L68">        return Response.ok(apiPage).build();</span>
+    }
+
+    @GET
+    @Path(&quot;/{id}&quot;)
+    public Response getById(@PathParam(&quot;id&quot;) UUID id, @Context SecurityContext sec) {
+<span class="nc" id="L74">        UUID userId = UUID.fromString(sec.getUserPrincipal().getName());</span>
+<span class="nc" id="L75">        var appResponse = readingService.getById(userId, id);</span>
+<span class="nc" id="L76">        return Response.ok(toApiResponse(appResponse)).build();</span>
+    }
+
+    @PUT
+    @Path(&quot;/{id}&quot;)
+    public Response update(@PathParam(&quot;id&quot;) UUID id, UpdateReadingRequest request, @Context SecurityContext sec) {
+<span class="nc" id="L82">        UUID userId = UUID.fromString(sec.getUserPrincipal().getName());</span>
+<span class="nc" id="L83">        boolean isAdmin = sec.isUserInRole(&quot;ADMIN&quot;);</span>
+<span class="nc" id="L84">        var appRequest = new com.library.reading.application.dto.UpdateReadingRequest(</span>
+<span class="nc" id="L85">                request.status(), request.rating(), request.review(), request.startedAt(), request.finishedAt());</span>
+<span class="nc" id="L86">        var appResponse = readingService.update(userId, id, appRequest, isAdmin);</span>
+<span class="nc" id="L87">        return Response.ok(toApiResponse(appResponse)).build();</span>
+    }
+
+    @DELETE
+    @Path(&quot;/{id}&quot;)
+    public Response delete(@PathParam(&quot;id&quot;) UUID id, @Context SecurityContext sec) {
+<span class="nc" id="L93">        UUID userId = UUID.fromString(sec.getUserPrincipal().getName());</span>
+<span class="nc" id="L94">        boolean isAdmin = sec.isUserInRole(&quot;ADMIN&quot;);</span>
+<span class="nc" id="L95">        readingService.delete(userId, id, isAdmin);</span>
+<span class="nc" id="L96">        return Response.noContent().build();</span>
+    }
+
+    private ReadingResponse toApiResponse(com.library.reading.application.dto.ReadingResponse app) {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        BookSummary bookSummary = app.book() != null</span>
+<span class="nc" id="L101">                ? new BookSummary(app.book().id(), app.book().title())</span>
+<span class="nc" id="L102">                : null;</span>
+<span class="nc" id="L103">        return new ReadingResponse(</span>
+<span class="nc" id="L104">                app.id(),</span>
+                bookSummary,
+<span class="nc" id="L106">                app.status(),</span>
+<span class="nc" id="L107">                app.rating(),</span>
+<span class="nc" id="L108">                app.review(),</span>
+<span class="nc" id="L109">                app.startedAt(),</span>
+<span class="nc" id="L110">                app.finishedAt(),</span>
+<span class="nc" id="L111">                app.createdAt(),</span>
+<span class="nc" id="L112">                app.updatedAt());</span>
+    }
+
+    private PageResponse&lt;ReadingResponse&gt; mapPage(
+            PageResponse&lt;com.library.reading.application.dto.ReadingResponse&gt; appPage) {
+<span class="nc" id="L117">        var content = appPage.content().stream().map(this::toApiResponse).toList();</span>
+<span class="nc" id="L118">        return new PageResponse&lt;&gt;(content, appPage.totalElements(), appPage.totalPages(),</span>
+<span class="nc" id="L119">                appPage.page(), appPage.size());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

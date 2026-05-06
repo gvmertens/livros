@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PanachePublisherRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CatalogResourceIT (QuarkusTest)</a> &gt; <a href="index.source.html" class="el_package">com.library.catalog.infrastructure</a> &gt; <span class="el_source">PanachePublisherRepository.java</span></div><h1>PanachePublisherRepository.java</h1><pre class="source lang-java linenums">package com.library.catalog.infrastructure;
+
+import com.library.catalog.application.PublisherRepository;
+import com.library.catalog.application.dto.PublisherResponse;
+import com.library.catalog.domain.Book;
+import com.library.catalog.domain.Publisher;
+import com.library.shared.exception.NotFoundException;
+import com.library.shared.pagination.PageRequest;
+import com.library.shared.pagination.PageResponse;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L18">public class PanachePublisherRepository implements PublisherRepository, PanacheRepositoryBase&lt;Publisher, UUID&gt; {</span>
+
+    @Override
+    public Optional&lt;Publisher&gt; findByIdOptional(UUID id) {
+<span class="fc" id="L22">        return Optional.ofNullable(getEntityManager().find(Publisher.class, id));</span>
+    }
+
+    @Override
+    public Publisher findByIdOrThrow(UUID id) {
+<span class="fc" id="L27">        return findByIdOptional(id)</span>
+<span class="fc" id="L28">                .orElseThrow(() -&gt; NotFoundException.of(&quot;Publisher&quot;, id));</span>
+    }
+
+    @Override
+    public boolean hasBooks(UUID publisherId) {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        return Book.count(&quot;publisher.id&quot;, publisherId) &gt; 0;</span>
+    }
+
+    @Override
+    public PageResponse&lt;PublisherResponse&gt; findAll(PageRequest page) {
+<span class="fc" id="L38">        var pager = findAll().page(page.page(), page.size());</span>
+<span class="fc" id="L39">        List&lt;Publisher&gt; publishers = pager.list();</span>
+<span class="fc" id="L40">        long total = pager.count();</span>
+<span class="fc" id="L41">        List&lt;PublisherResponse&gt; content = publishers.stream()</span>
+<span class="fc" id="L42">                .map(p -&gt; new PublisherResponse(p.id, p.name, p.createdAt, p.updatedAt))</span>
+<span class="fc" id="L43">                .toList();</span>
+<span class="fc" id="L44">        return PageResponse.of(content, total, page);</span>
+    }
+
+    @Override
+    public void persist(Publisher publisher) {
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (publisher.id == null) {</span>
+<span class="fc" id="L50">            getEntityManager().persist(publisher);</span>
+        } else {
+<span class="fc" id="L52">            getEntityManager().merge(publisher);</span>
+        }
+<span class="fc" id="L54">    }</span>
+
+    @Override
+    public void delete(Publisher publisher) {
+<span class="fc" id="L58">        getEntityManager().remove(</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">                getEntityManager().contains(publisher) ? publisher : getEntityManager().merge(publisher));</span>
+<span class="fc" id="L60">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

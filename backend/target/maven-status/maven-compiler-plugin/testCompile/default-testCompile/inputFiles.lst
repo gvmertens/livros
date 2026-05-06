@@ -1,0 +1,14 @@
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\api\CatalogResourceIT.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\identity\api\IdentityResourceIT.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\application\PublisherServiceImplTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\application\AuthorServiceImplTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\shared\pagination\PageRequestTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\shared\pagination\PageResponseTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\infrastructure\FlywayMigrationV3ToV5Test.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\shared\HealthCheckIT.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\infrastructure\PostgresTestResource.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\shared\exception\AppExceptionHierarchyTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\api\dto\CatalogDtoMappingTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\infrastructure\TestEventObserver.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\shared\exception\ErrorResponseTest.java
+C:\Users\Guilherme\Documents\Cursos\SCTEC\livroGui\backend\src\test\java\com\library\catalog\application\BookServiceImplTest.java

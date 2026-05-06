@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PanacheProfileRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">personal-library-manager</a> &gt; <a href="index.source.html" class="el_package">com.library.identity.infrastructure</a> &gt; <span class="el_source">PanacheProfileRepository.java</span></div><h1>PanacheProfileRepository.java</h1><pre class="source lang-java linenums">package com.library.identity.infrastructure;
+
+import com.library.identity.application.ProfileRepository;
+import com.library.identity.domain.Profile;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@ApplicationScoped
+<span class="fc" id="L12">public class PanacheProfileRepository implements ProfileRepository, PanacheRepositoryBase&lt;Profile, UUID&gt; {</span>
+
+    @Override
+    public Optional&lt;Profile&gt; findByUserId(UUID userId) {
+<span class="fc" id="L16">        return find(&quot;userId&quot;, userId).firstResultOptional();</span>
+    }
+
+    @Override
+    public void persist(Profile profile) {
+<span class="fc" id="L21">        getEntityManager().persist(profile);</span>
+<span class="fc" id="L22">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
