@@ -1,0 +1,63 @@
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+*.pem
+*.jks
+*.p12
+*.key
+*.crt
+
+# ── Maven / Java ──────────────────────────────────────────────────────────────
+backend/target/
+recommendation-service/target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+node_modules/
+dist/
+.vite/
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# Keep docker-compose.yml but ignore override files with local secrets
+docker-compose.override.yml
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Test / Coverage ───────────────────────────────────────────────────────────
+backend/.jqwik-database
+**/jacoco.exec
+**/jacoco-quarkus.exec
+coverage/
+.nyc_output/
+
+# ── Quarkus dev mode ──────────────────────────────────────────────────────────
+.quarkus/
