@@ -26,6 +26,21 @@ public class PanacheBookRepository implements BookRepository, PanacheRepositoryB
     }
 
     @Override
+    public Optional<Book> findByGoogleBooksId(String googleBooksId) {
+        return find("googleBooksId", googleBooksId).firstResultOptional();
+    }
+
+    @Override
+    public Optional<Book> findByIsbn10(String isbn10) {
+        return find("isbn10", isbn10).firstResultOptional();
+    }
+
+    @Override
+    public Optional<Book> findByIsbn13(String isbn13) {
+        return find("isbn13", isbn13).firstResultOptional();
+    }
+
+    @Override
     public Optional<Book> findByIdOptional(UUID id) {
         return Optional.ofNullable(getEntityManager().find(Book.class, id));
     }
@@ -44,7 +59,8 @@ public class PanacheBookRepository implements BookRepository, PanacheRepositoryB
         } else {
             String q = "%" + query.toLowerCase() + "%";
             pager = find(
-                    "SELECT b FROM Book b JOIN b.author a WHERE LOWER(b.title) LIKE :q OR LOWER(a.name) LIKE :q ORDER BY b.title ASC",
+                    "SELECT DISTINCT b FROM Book b LEFT JOIN b.authors a " +
+                            "WHERE LOWER(b.title) LIKE :q OR LOWER(a.name) LIKE :q ORDER BY b.title ASC",
                     Parameters.with("q", q))
                     .page(page.page(), page.size());
         }
@@ -72,9 +88,9 @@ public class PanacheBookRepository implements BookRepository, PanacheRepositoryB
     }
 
     private BookResponse toBookResponse(Book book) {
-        AuthorResponse authorResponse = new AuthorResponse(
+        AuthorResponse authorResponse = book.author == null ? null : new AuthorResponse(
                 book.author.id, book.author.name, book.author.createdAt, book.author.updatedAt);
-        PublisherResponse publisherResponse = new PublisherResponse(
+        PublisherResponse publisherResponse = book.publisher == null ? null : new PublisherResponse(
                 book.publisher.id, book.publisher.name, book.publisher.createdAt, book.publisher.updatedAt);
         return new BookResponse(
                 book.id, book.isbn, book.title,

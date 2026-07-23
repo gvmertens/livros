@@ -31,6 +31,12 @@ public class Reading extends PanacheEntityBase {
     @Column(columnDefinition = "TEXT")
     public String review;
 
+    @Column(nullable = false)
+    public boolean favorite;
+
+    @Column(columnDefinition = "TEXT")
+    public String notes;
+
     @Column(name = "started_at")
     public Instant startedAt;
 

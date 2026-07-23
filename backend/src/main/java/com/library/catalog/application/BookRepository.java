@@ -10,6 +10,9 @@ import java.util.UUID;
 
 public interface BookRepository {
     Optional<Book> findByIsbn(String isbn);
+    Optional<Book> findByGoogleBooksId(String googleBooksId);
+    Optional<Book> findByIsbn10(String isbn10);
+    Optional<Book> findByIsbn13(String isbn13);
     Optional<Book> findByIdOptional(UUID id);
     Book findByIdOrThrow(UUID id);
     PageResponse<BookResponse> search(String query, PageRequest page);
