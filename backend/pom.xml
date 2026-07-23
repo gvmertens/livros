@@ -39,6 +39,12 @@
             <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
         </dependency>
 
+        <!-- Typed REST client for external catalog integrations -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
+        </dependency>
+
         <!-- Hibernate ORM with Panache -->
         <dependency>
             <groupId>io.quarkus</groupId>
