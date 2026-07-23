@@ -55,6 +55,7 @@ public class BookServiceImpl implements BookService {
         book.isbn = request.isbn();
         book.title = request.title();
         book.author = author;
+        book.authors.add(author);
         book.publisher = publisher;
         bookRepository.persist(book);
 
@@ -131,9 +132,9 @@ public class BookServiceImpl implements BookService {
     }
 
     private BookResponse toResponse(Book book) {
-        AuthorResponse authorResponse = new AuthorResponse(
+        AuthorResponse authorResponse = book.author == null ? null : new AuthorResponse(
                 book.author.id, book.author.name, book.author.createdAt, book.author.updatedAt);
-        PublisherResponse publisherResponse = new PublisherResponse(
+        PublisherResponse publisherResponse = book.publisher == null ? null : new PublisherResponse(
                 book.publisher.id, book.publisher.name, book.publisher.createdAt, book.publisher.updatedAt);
         return new BookResponse(
                 book.id, book.isbn, book.title,
