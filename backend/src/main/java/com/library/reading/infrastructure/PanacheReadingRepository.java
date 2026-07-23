@@ -52,6 +52,11 @@ public class PanacheReadingRepository implements ReadingRepository, PanacheRepos
     }
 
     @Override
+    public void flush() {
+        getEntityManager().flush();
+    }
+
+    @Override
     public void delete(Reading reading) {
         getEntityManager().remove(
                 getEntityManager().contains(reading) ? reading : getEntityManager().merge(reading));

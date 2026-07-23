@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PublisherRepository {
+    Optional<Publisher> findByNormalizedName(String name);
     Optional<Publisher> findByIdOptional(UUID id);
     Publisher findByIdOrThrow(UUID id);
     boolean hasBooks(UUID publisherId);

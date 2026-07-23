@@ -41,6 +41,12 @@ public class PanacheBookRepository implements BookRepository, PanacheRepositoryB
     }
 
     @Override
+    public Optional<Book> findByNormalizedMetadata(String title, String primaryAuthor, String publisher) {
+        return find("normalizedTitle = ?1 AND normalizedPrimaryAuthor = ?2 AND normalizedPublisher = ?3",
+                title, primaryAuthor, publisher).firstResultOptional();
+    }
+
+    @Override
     public Optional<Book> findByIdOptional(UUID id) {
         return Optional.ofNullable(getEntityManager().find(Book.class, id));
     }
@@ -79,6 +85,11 @@ public class PanacheBookRepository implements BookRepository, PanacheRepositoryB
         } else {
             getEntityManager().merge(book);
         }
+    }
+
+    @Override
+    public void flush() {
+        getEntityManager().flush();
     }
 
     @Override

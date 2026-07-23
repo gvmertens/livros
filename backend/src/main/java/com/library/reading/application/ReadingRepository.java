@@ -18,5 +18,7 @@ public interface ReadingRepository {
 
     void persist(Reading reading);
 
+    void flush();
+
     void delete(Reading reading);
 }

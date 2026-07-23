@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AuthorRepository {
+    Optional<Author> findByNormalizedName(String name);
     Optional<Author> findByIdOptional(UUID id);
     Author findByIdOrThrow(UUID id);
     boolean hasBooks(UUID authorId);

@@ -13,9 +13,11 @@ public interface BookRepository {
     Optional<Book> findByGoogleBooksId(String googleBooksId);
     Optional<Book> findByIsbn10(String isbn10);
     Optional<Book> findByIsbn13(String isbn13);
+    Optional<Book> findByNormalizedMetadata(String title, String primaryAuthor, String publisher);
     Optional<Book> findByIdOptional(UUID id);
     Book findByIdOrThrow(UUID id);
     PageResponse<BookResponse> search(String query, PageRequest page);
     void persist(Book book);
+    void flush();
     void delete(Book book);
 }
