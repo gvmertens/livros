@@ -2,8 +2,6 @@ package com.library.recommendation.application;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,18 +19,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @ApplicationScoped
 public class UserReadingHistory {
 
-    public record ReadingEntry(String bookTitle, Double rating, String review) {}
+    public record ReadingEntry(UUID bookId, String bookTitle, String publisherName,
+                               Double rating, String review) {}
 
-    private final Map<UUID, List<ReadingEntry>> history = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<UUID, ReadingEntry>> history = new ConcurrentHashMap<>();
 
     /** Record a rating or review event for a user. */
-    public void record(UUID userId, String bookTitle, Double rating, String review) {
-        history.computeIfAbsent(userId, k -> Collections.synchronizedList(new ArrayList<>()))
-               .add(new ReadingEntry(bookTitle, rating, review));
+    public void record(UUID userId, UUID bookId, String bookTitle, String publisherName,
+                       Double rating, String review) {
+        history.computeIfAbsent(userId, ignored -> new ConcurrentHashMap<>())
+                .compute(bookId, (ignored, current) -> new ReadingEntry(
+                        bookId,
+                        bookTitle != null ? bookTitle : current != null ? current.bookTitle() : null,
+                        publisherName != null ? publisherName : current != null ? current.publisherName() : null,
+                        rating != null ? rating : current != null ? current.rating() : null,
+                        review != null ? review : current != null ? current.review() : null));
     }
 
     /** Returns all recorded entries for a user (unmodifiable). */
     public List<ReadingEntry> getHistory(UUID userId) {
-        return List.copyOf(history.getOrDefault(userId, List.of()));
+        Map<UUID, ReadingEntry> entries = history.get(userId);
+        return entries == null ? List.of() : List.copyOf(entries.values());
     }
 }

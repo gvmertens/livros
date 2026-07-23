@@ -98,7 +98,7 @@ public class ReadingResource {
 
     private ReadingResponse toApiResponse(com.library.reading.application.dto.ReadingResponse app) {
         BookSummary bookSummary = app.book() != null
-                ? new BookSummary(app.book().id(), app.book().title())
+                ? new BookSummary(app.book().id(), app.book().title(), app.book().publisher())
                 : null;
         return new ReadingResponse(
                 app.id(),
