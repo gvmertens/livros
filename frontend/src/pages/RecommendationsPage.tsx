@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getRecommendations } from '../api/recommendations';
 import Navbar from '../components/Navbar';
+import { theme } from '../theme';
 
 /**
  * Recommendations page — displays personalised book suggestions from the
@@ -14,6 +16,7 @@ import Navbar from '../components/Navbar';
  * Requirements: 10.4
  */
 export default function RecommendationsPage() {
+  const { t } = useTranslation();
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['recommendations'],
     queryFn: getRecommendations,
@@ -21,45 +24,86 @@ export default function RecommendationsPage() {
   });
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', background: theme.colors.black }}>
       <Navbar />
 
-      <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-          <h1 style={{ margin: 0 }}>Recommendations</h1>
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.base, marginBottom: theme.spacing.xl }}>
+          <h1 style={{ margin: 0, color: theme.colors.white, fontSize: 28, fontWeight: 700 }}>
+            {t('recommendations.title')}
+          </h1>
           <button
             onClick={() => refetch()}
             disabled={isLoading}
-            style={{ padding: '6px 14px', fontSize: 13 }}
-            aria-label="Refresh recommendations"
+            style={{
+              padding: '6px 14px',
+              fontSize: theme.fontSizes.sm,
+              background: 'transparent',
+              border: `1px solid ${theme.colors.primary}`,
+              color: theme.colors.primary,
+              borderRadius: theme.radius.sm,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.6 : 1,
+              transition: 'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                (e.currentTarget as HTMLElement).style.background = theme.colors.primary;
+                (e.currentTarget as HTMLElement).style.color = theme.colors.white;
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
+              (e.currentTarget as HTMLElement).style.color = theme.colors.primary;
+            }}
+            aria-label={t('recommendations.refreshAriaLabel')}
           >
-            {isLoading ? 'Loading…' : '↻ Refresh'}
+            {isLoading ? t('recommendations.loading') : t('recommendations.refresh')}
           </button>
         </div>
 
         {/* Loading */}
         {isLoading && (
-          <p aria-live="polite" style={{ opacity: 0.6 }}>
-            Generating recommendations…
+          <p aria-live="polite" style={{ color: theme.colors.neutral400 }}>
+            {t('recommendations.loading')}
           </p>
         )}
 
         {/* Error */}
         {isError && (
-          <p role="alert" style={{ color: 'red' }}>
-            Could not load recommendations. The recommendation service may be unavailable.
+          <p role="alert" style={{ color: theme.colors.danger }}>
+            {t('recommendations.loadError')}
           </p>
         )}
 
         {/* Empty state */}
         {!isLoading && !isError && data?.recommendations.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <p style={{ fontSize: 18, marginBottom: 8 }}>📚 No recommendations yet</p>
-            <p style={{ opacity: 0.6, marginBottom: 20 }}>
-              Rate and review books in your reading list to get personalised suggestions.
+            <p style={{ fontSize: theme.fontSizes.xl, marginBottom: theme.spacing.sm }}>📚</p>
+            <p style={{ fontSize: theme.fontSizes.lg, color: theme.colors.white, marginBottom: theme.spacing.sm }}>
+              {t('recommendations.emptyTitle')}
+            </p>
+            <p style={{ color: theme.colors.neutral600, fontSize: theme.fontSizes.sm, marginBottom: theme.spacing.lg }}>
+              {t('recommendations.emptyDescription')}
             </p>
             <Link to="/readings">
-              <button style={{ padding: '10px 20px' }}>Go to My Readings</button>
+              <button
+                style={{
+                  padding: '10px 20px',
+                  background: theme.colors.primary,
+                  color: theme.colors.white,
+                  border: 'none',
+                  borderRadius: theme.radius.md,
+                  fontSize: theme.fontSizes.md,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = theme.colors.primaryDark; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = theme.colors.primary; }}
+              >
+                {t('recommendations.goToReadings')}
+              </button>
             </Link>
           </div>
         )}
@@ -67,20 +111,29 @@ export default function RecommendationsPage() {
         {/* Recommendations list */}
         {data && data.recommendations.length > 0 && (
           <>
-            <p style={{ opacity: 0.6, fontSize: 13, marginBottom: 20 }}>
-              Based on your reading history — powered by AI
+            <p style={{ color: theme.colors.neutral600, fontSize: theme.fontSizes.sm, marginBottom: theme.spacing.lg }}>
+              {t('recommendations.poweredByAI')}
             </p>
-            <ol style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {data.criteriaSummary && (
+              <section style={{ padding: theme.spacing.lg, marginBottom: theme.spacing.lg, background: theme.colors.neutral900, border: `1px solid ${theme.colors.neutral800}`, borderRadius: theme.radius.md }}>
+                <h2 style={{ margin: `0 0 ${theme.spacing.sm}px`, color: theme.colors.white, fontSize: theme.fontSizes.md }}>
+                  {t('recommendations.criteriaTitle')}
+                </h2>
+                <p style={{ margin: 0, color: theme.colors.neutral400 }}>{data.criteriaSummary}</p>
+              </section>
+            )}
+            <ol style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
               {data.recommendations.map((rec, idx) => (
                 <li
                   key={idx}
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: 16,
-                    padding: '16px 20px',
-                    border: '1px solid #ddd',
-                    borderRadius: 8,
+                    gap: theme.spacing.base,
+                    padding: `${theme.spacing.base}px ${theme.spacing.lg}px`,
+                    background: theme.colors.neutral900,
+                    border: `1px solid ${theme.colors.neutral800}`,
+                    borderRadius: theme.radius.md,
                   }}
                 >
                   <span
@@ -88,12 +141,12 @@ export default function RecommendationsPage() {
                       minWidth: 28,
                       height: 28,
                       borderRadius: '50%',
-                      background: '#1565c0',
-                      color: '#fff',
+                      background: theme.colors.primary,
+                      color: theme.colors.white,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 13,
+                      fontSize: theme.fontSizes.sm,
                       fontWeight: 700,
                       flexShrink: 0,
                     }}
@@ -101,7 +154,10 @@ export default function RecommendationsPage() {
                   >
                     {idx + 1}
                   </span>
-                  <span style={{ fontSize: 15 }}>{rec}</span>
+                  <div>
+                    <div style={{ fontSize: theme.fontSizes.md, color: theme.colors.white, fontWeight: 600 }}>{rec.title}</div>
+                    <div style={{ marginTop: 4, fontSize: theme.fontSizes.sm, color: theme.colors.neutral400 }}>{rec.publisher}</div>
+                  </div>
                 </li>
               ))}
             </ol>

@@ -1,21 +1,16 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getReading, updateReading, deleteReading } from '../api/readings';
 import Navbar from '../components/Navbar';
 import ReadingStatusBadge from '../components/ReadingStatusBadge';
 import StarRating from '../components/StarRating';
+import { theme } from '../theme';
 import type { ReadingStatus, ErrorResponse } from '../types';
 import type { AxiosError } from 'axios';
 
 const STATUS_OPTIONS: ReadingStatus[] = ['WANT_TO_READ', 'READING', 'FINISHED', 'ABANDONED'];
-
-const STATUS_LABELS: Record<ReadingStatus, string> = {
-  WANT_TO_READ: 'Want to Read',
-  READING: 'Reading',
-  FINISHED: 'Finished',
-  ABANDONED: 'Abandoned',
-};
 
 /** Format an ISO-8601 string to a local date input value (YYYY-MM-DD). */
 function toDateInputValue(iso: string | null): string {
@@ -28,6 +23,26 @@ function fromDateInputValue(val: string): string | null {
   if (!val) return null;
   return `${val}T00:00:00Z`;
 }
+
+const darkInputStyle: React.CSSProperties = {
+  width: '100%',
+  background: theme.colors.black,
+  border: `1px solid ${theme.colors.neutral800}`,
+  color: theme.colors.white,
+  borderRadius: theme.radius.sm,
+  padding: '10px 12px',
+  fontSize: theme.fontSizes.md,
+  outline: 'none',
+  transition: 'border-color 0.15s',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  marginBottom: 6,
+  color: theme.colors.neutral400,
+  fontSize: theme.fontSizes.sm,
+  fontWeight: 500,
+};
 
 /**
  * Reading detail page — view and edit a reading record.
@@ -42,6 +57,7 @@ function fromDateInputValue(val: string): string | null {
  * Requirements: 8.3, 8.9, 8.10
  */
 export default function ReadingDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -93,7 +109,7 @@ export default function ReadingDetailPage() {
     },
     onError: (err) => {
       const axiosErr = err as AxiosError<ErrorResponse>;
-      setServerError(axiosErr.response?.data?.message ?? 'Failed to save changes.');
+      setServerError(axiosErr.response?.data?.message ?? t('readings.saveFailed'));
     },
   });
 
@@ -105,17 +121,17 @@ export default function ReadingDetailPage() {
     },
     onError: (err) => {
       const axiosErr = err as AxiosError<ErrorResponse>;
-      setServerError(axiosErr.response?.data?.message ?? 'Failed to delete reading.');
+      setServerError(axiosErr.response?.data?.message ?? t('readings.deleteFailed'));
     },
   });
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
     if (rating !== null && (rating < 0 || rating > 10)) {
-      errs.rating = 'Rating must be between 0.0 and 10.0.';
+      errs.rating = t('common.validation.ratingOutOfRange');
     }
     if (status === 'FINISHED' && !startedAt) {
-      errs.startedAt = 'Start date is required when status is Finished.';
+      errs.startedAt = t('common.validation.startedAtRequired');
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -130,16 +146,27 @@ export default function ReadingDetailPage() {
   }
 
   function handleDelete() {
-    if (!window.confirm('Remove this book from your library? This cannot be undone.')) return;
+    if (!window.confirm(t('readings.deleteConfirm'))) return;
     deleteMutation.mutate();
   }
 
+  const backLink = (
+    <Link
+      to="/readings"
+      style={{ fontSize: theme.fontSizes.sm, color: theme.colors.neutral400, transition: 'color 0.15s' }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primary; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.neutral400; }}
+    >
+      {t('readings.backToReadings')}
+    </Link>
+  );
+
   if (isLoading) {
     return (
-      <div>
+      <div style={{ minHeight: '100vh', background: theme.colors.black }}>
         <Navbar />
-        <main style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px' }}>
-          <p aria-live="polite">Loading…</p>
+        <main style={{ maxWidth: 620, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+          <p aria-live="polite" style={{ color: theme.colors.neutral400 }}>{t('common.loading')}</p>
         </main>
       </div>
     );
@@ -147,45 +174,43 @@ export default function ReadingDetailPage() {
 
   if (isError || !reading) {
     return (
-      <div>
+      <div style={{ minHeight: '100vh', background: theme.colors.black }}>
         <Navbar />
-        <main style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px' }}>
-          <p role="alert" style={{ color: 'red' }}>
-            Reading record not found.
+        <main style={{ maxWidth: 620, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+          <p role="alert" style={{ color: theme.colors.danger, marginBottom: theme.spacing.base }}>
+            {t('readings.notFound')}
           </p>
-          <Link to="/readings">← Back to My Readings</Link>
+          {backLink}
         </main>
       </div>
     );
   }
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', background: theme.colors.black }}>
       <Navbar />
 
-      <main style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px' }}>
+      <main style={{ maxWidth: 620, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
         {/* Back link */}
-        <Link to="/readings" style={{ fontSize: 14, opacity: 0.7 }}>
-          ← Back to My Readings
-        </Link>
+        {backLink}
 
         {/* Book title + current status */}
-        <div style={{ marginTop: 16, marginBottom: 24 }}>
-          <h1 style={{ marginBottom: 8 }}>
-            {reading.book.title ?? 'Unknown Book'}
+        <div style={{ marginTop: theme.spacing.base, marginBottom: theme.spacing.xl }}>
+          <h1 style={{ color: theme.colors.white, fontSize: 28, fontWeight: 700, marginBottom: theme.spacing.sm }}>
+            {reading.book.title ?? t('readings.unknownBook')}
           </h1>
           <ReadingStatusBadge status={reading.status} />
         </div>
 
         {/* Feedback messages */}
         {serverError && (
-          <p role="alert" style={{ color: 'red', marginBottom: 16 }}>
+          <p role="alert" style={{ color: theme.colors.danger, marginBottom: theme.spacing.base }}>
             {serverError}
           </p>
         )}
         {saveSuccess && (
-          <p role="status" style={{ color: 'green', marginBottom: 16 }}>
-            Changes saved.
+          <p role="status" style={{ color: theme.colors.success, marginBottom: theme.spacing.base }}>
+            {t('readings.changesSaved')}
           </p>
         )}
 
@@ -193,95 +218,120 @@ export default function ReadingDetailPage() {
         <form onSubmit={handleSubmit} noValidate>
 
           {/* Status */}
-          <div style={{ marginBottom: 20 }}>
-            <label htmlFor="reading-status" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              Status
+          <div style={{ marginBottom: theme.spacing.lg }}>
+            <label htmlFor="reading-status" style={labelStyle}>
+              {t('readings.statusLabel')}
             </label>
             <select
               id="reading-status"
               value={status}
               onChange={(e) => setStatus(e.target.value as ReadingStatus)}
-              style={{ width: '100%', padding: '8px 12px', fontSize: 15 }}
+              style={darkInputStyle}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
+                  {t(`readings.statusLabels.${s}`)}
                 </option>
               ))}
             </select>
           </div>
 
           {/* Rating */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-              Rating
+          <div style={{ marginBottom: theme.spacing.lg }}>
+            <label style={labelStyle}>
+              {t('readings.ratingLabel')}
             </label>
             <StarRating value={rating} onChange={setRating} />
             {errors.rating && (
-              <span style={{ color: 'red', fontSize: 13, display: 'block', marginTop: 4 }}>
+              <span style={{ color: theme.colors.danger, fontSize: theme.fontSizes.sm, display: 'block', marginTop: 4 }}>
                 {errors.rating}
               </span>
             )}
           </div>
 
           {/* Review */}
-          <div style={{ marginBottom: 20 }}>
-            <label htmlFor="reading-review" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              Review
+          <div style={{ marginBottom: theme.spacing.lg }}>
+            <label htmlFor="reading-review" style={labelStyle}>
+              {t('readings.reviewLabel')}
             </label>
             <textarea
               id="reading-review"
               value={review}
               onChange={(e) => setReview(e.target.value)}
               rows={5}
-              placeholder="Write your thoughts about this book…"
-              style={{ width: '100%', padding: '8px 12px', fontSize: 15, resize: 'vertical' }}
+              placeholder={t('readings.reviewPlaceholder')}
+              style={{ ...darkInputStyle, resize: 'vertical' }}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
             />
           </div>
 
           {/* Started At */}
-          <div style={{ marginBottom: 20 }}>
-            <label htmlFor="reading-started" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              Started
+          <div style={{ marginBottom: theme.spacing.lg }}>
+            <label htmlFor="reading-started" style={labelStyle}>
+              {t('readings.startedLabel')}
             </label>
             <input
               id="reading-started"
               type="date"
               value={startedAt}
               onChange={(e) => setStartedAt(e.target.value)}
-              style={{ padding: '8px 12px', fontSize: 15 }}
+              style={{ ...darkInputStyle, width: 'auto' }}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
               aria-describedby={errors.startedAt ? 'started-error' : undefined}
               aria-invalid={!!errors.startedAt}
             />
             {errors.startedAt && (
-              <span id="started-error" style={{ color: 'red', fontSize: 13, display: 'block', marginTop: 4 }}>
+              <span id="started-error" style={{ color: theme.colors.danger, fontSize: theme.fontSizes.sm, display: 'block', marginTop: 4 }}>
                 {errors.startedAt}
               </span>
             )}
           </div>
 
           {/* Finished At */}
-          <div style={{ marginBottom: 28 }}>
-            <label htmlFor="reading-finished" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              Finished
+          <div style={{ marginBottom: theme.spacing.xxl }}>
+            <label htmlFor="reading-finished" style={labelStyle}>
+              {t('readings.finishedLabel')}
             </label>
             <input
               id="reading-finished"
               type="date"
               value={finishedAt}
               onChange={(e) => setFinishedAt(e.target.value)}
-              style={{ padding: '8px 12px', fontSize: 15 }}
+              style={{ ...darkInputStyle, width: 'auto' }}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
             />
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: theme.spacing.md, alignItems: 'center' }}>
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              style={{ padding: '10px 20px' }}
+              style={{
+                background: theme.colors.primary,
+                color: theme.colors.white,
+                border: 'none',
+                borderRadius: theme.radius.md,
+                padding: '10px 20px',
+                fontSize: theme.fontSizes.md,
+                fontWeight: 600,
+                cursor: updateMutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: updateMutation.isPending ? 0.7 : 1,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                if (!updateMutation.isPending) (e.currentTarget as HTMLElement).style.background = theme.colors.primaryDark;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = theme.colors.primary;
+              }}
             >
-              {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
+              {updateMutation.isPending ? t('readings.saving') : t('readings.saveChanges')}
             </button>
 
             <button
@@ -290,14 +340,27 @@ export default function ReadingDetailPage() {
               disabled={deleteMutation.isPending}
               style={{
                 padding: '10px 20px',
-                color: '#c00',
-                background: 'none',
-                border: '1px solid #c00',
-                cursor: 'pointer',
-                borderRadius: 8,
+                color: theme.colors.danger,
+                background: 'transparent',
+                border: `1px solid ${theme.colors.danger}`,
+                borderRadius: theme.radius.md,
+                fontSize: theme.fontSizes.md,
+                cursor: deleteMutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: deleteMutation.isPending ? 0.7 : 1,
+                transition: 'background 0.15s, color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                if (!deleteMutation.isPending) {
+                  (e.currentTarget as HTMLElement).style.background = theme.colors.danger;
+                  (e.currentTarget as HTMLElement).style.color = theme.colors.white;
+                }
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+                (e.currentTarget as HTMLElement).style.color = theme.colors.danger;
               }}
             >
-              {deleteMutation.isPending ? 'Removing…' : 'Remove from Library'}
+              {deleteMutation.isPending ? t('readings.removing') : t('readings.removeFromLibrary')}
             </button>
           </div>
         </form>

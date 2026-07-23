@@ -1,14 +1,15 @@
+import { useTranslation } from 'react-i18next';
 import type { ReadingStatus } from '../types';
 
 interface Props {
   status: ReadingStatus;
 }
 
-const STATUS_CONFIG: Record<ReadingStatus, { label: string; bg: string; color: string }> = {
-  WANT_TO_READ: { label: 'Want to Read', bg: '#e8f4fd', color: '#1565c0' },
-  READING:      { label: 'Reading',       bg: '#fff8e1', color: '#f57f17' },
-  FINISHED:     { label: 'Finished',      bg: '#e8f5e9', color: '#2e7d32' },
-  ABANDONED:    { label: 'Abandoned',     bg: '#fce4ec', color: '#c62828' },
+const STATUS_COLORS: Record<ReadingStatus, { bg: string; color: string }> = {
+  WANT_TO_READ: { bg: '#1A2A3A', color: '#5B9BD5' },
+  READING:      { bg: '#2A2010', color: '#E07020' },
+  FINISHED:     { bg: '#0F2A1A', color: '#27AE60' },
+  ABANDONED:    { bg: '#2A1010', color: '#C0392B' },
 };
 
 /**
@@ -16,7 +17,10 @@ const STATUS_CONFIG: Record<ReadingStatus, { label: string; bg: string; color: s
  * Requirements: 8.3
  */
 export default function ReadingStatusBadge({ status }: Props) {
-  const config = STATUS_CONFIG[status] ?? { label: status, bg: '#f5f5f5', color: '#333' };
+  const { t } = useTranslation();
+
+  const colors = STATUS_COLORS[status] ?? { bg: '#1A1A1A', color: '#8A8A8A' };
+  const label = t(`readings.statusLabels.${status}`, { defaultValue: status });
 
   return (
     <span
@@ -26,13 +30,13 @@ export default function ReadingStatusBadge({ status }: Props) {
         borderRadius: 12,
         fontSize: 12,
         fontWeight: 600,
-        backgroundColor: config.bg,
-        color: config.color,
+        backgroundColor: colors.bg,
+        color: colors.color,
         whiteSpace: 'nowrap',
       }}
-      aria-label={`Reading status: ${config.label}`}
+      aria-label={`Reading status: ${label}`}
     >
-      {config.label}
+      {label}
     </span>
   );
 }

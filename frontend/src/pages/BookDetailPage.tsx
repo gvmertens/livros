@@ -1,19 +1,14 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getBook } from '../api/books';
 import { listReadings, createReading } from '../api/readings';
 import { useAuth } from '../auth/AuthContext';
 import Navbar from '../components/Navbar';
+import { theme } from '../theme';
 import type { ErrorResponse } from '../types';
 import type { AxiosError } from 'axios';
-
-const STATUS_LABELS: Record<string, string> = {
-  WANT_TO_READ: 'Want to Read',
-  READING: 'Reading',
-  FINISHED: 'Finished',
-  ABANDONED: 'Abandoned',
-};
 
 /**
  * Book detail page.
@@ -26,6 +21,7 @@ const STATUS_LABELS: Record<string, string> = {
  * Requirements: 7.6, 8.1
  */
 export default function BookDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -43,7 +39,6 @@ export default function BookDetailPage() {
   });
 
   // Fetch user's readings to check if this book is already tracked
-  // We fetch a large page to find the reading; in practice the user's list is small
   const { data: readingsPage, isLoading: readingsLoading } = useQuery({
     queryKey: ['readings', 'all'],
     queryFn: () => listReadings(0, 100),
@@ -56,24 +51,34 @@ export default function BookDetailPage() {
   const addMutation = useMutation({
     mutationFn: () => createReading({ bookId: id! }),
     onSuccess: () => {
-      // Invalidate readings cache so the new record appears
       queryClient.invalidateQueries({ queryKey: ['readings'] });
       setAddError('');
     },
     onError: (err) => {
       const axiosErr = err as AxiosError<ErrorResponse>;
       setAddError(
-        axiosErr.response?.data?.message ?? 'Failed to add book to library.',
+        axiosErr.response?.data?.message ?? t('books.addFailed'),
       );
     },
   });
 
+  const backLink = (
+    <Link
+      to="/books"
+      style={{ fontSize: theme.fontSizes.sm, color: theme.colors.neutral400, transition: 'color 0.15s' }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primary; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.neutral400; }}
+    >
+      {t('books.backToCatalog')}
+    </Link>
+  );
+
   if (bookLoading || readingsLoading) {
     return (
-      <div>
+      <div style={{ minHeight: '100vh', background: theme.colors.black }}>
         <Navbar />
-        <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
-          <p aria-live="polite">Loading…</p>
+        <main style={{ maxWidth: 720, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+          <p aria-live="polite" style={{ color: theme.colors.neutral400 }}>{t('common.loading')}</p>
         </main>
       </div>
     );
@@ -81,105 +86,154 @@ export default function BookDetailPage() {
 
   if (bookError || !book) {
     return (
-      <div>
+      <div style={{ minHeight: '100vh', background: theme.colors.black }}>
         <Navbar />
-        <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
-          <p role="alert" style={{ color: 'red' }}>
-            Book not found.
+        <main style={{ maxWidth: 720, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+          <p role="alert" style={{ color: theme.colors.danger, marginBottom: theme.spacing.base }}>
+            {t('books.notFound')}
           </p>
-          <Link to="/books">← Back to catalog</Link>
+          {backLink}
         </main>
       </div>
     );
   }
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', background: theme.colors.black }}>
       <Navbar />
 
-      <main style={{ maxWidth: 700, margin: '0 auto', padding: '24px 16px' }}>
+      <main style={{ maxWidth: 720, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
         {/* Back link */}
-        <Link to="/books" style={{ fontSize: 14, opacity: 0.7 }}>
-          ← Back to catalog
-        </Link>
+        {backLink}
 
         {/* Book info */}
-        <h1 style={{ marginTop: 16, marginBottom: 4 }}>{book.title}</h1>
-        <p style={{ margin: '0 0 4px', fontSize: 16, opacity: 0.8 }}>
-          by {book.author.name}
+        <h1
+          style={{
+            color: theme.colors.white,
+            fontSize: 28,
+            fontWeight: 700,
+            marginTop: theme.spacing.base,
+            marginBottom: 4,
+          }}
+        >
+          {book.title}
+        </h1>
+        <p style={{ margin: '0 0 4px', fontSize: theme.fontSizes.lg, color: theme.colors.neutral400 }}>
+          {t('books.by')} {book.author.name}
         </p>
-        <p style={{ margin: '0 0 4px', fontSize: 14, opacity: 0.6 }}>
-          Publisher: {book.publisher.name}
+        <p style={{ margin: '0 0 4px', fontSize: theme.fontSizes.md, color: theme.colors.neutral400 }}>
+          {t('books.publisher')}: {book.publisher.name}
         </p>
-        <p style={{ margin: '0 0 24px', fontSize: 13, fontFamily: 'monospace', opacity: 0.55 }}>
-          ISBN: {book.isbn}
+        <p style={{ margin: `0 0 ${theme.spacing.xl}px`, fontSize: theme.fontSizes.sm, fontFamily: 'monospace', color: theme.colors.neutral400 }}>
+          {t('books.isbn')}: {book.isbn}
         </p>
 
         {/* Admin edit link */}
         {user?.role === 'ADMIN' && (
-          <p style={{ marginBottom: 24 }}>
-            <Link to={`/admin/books/${book.id}/edit`} style={{ fontSize: 14 }}>
-              ✏️ Edit this book
+          <p style={{ marginBottom: theme.spacing.xl }}>
+            <Link
+              to={`/admin/books/${book.id}/edit`}
+              style={{ fontSize: theme.fontSizes.sm, color: theme.colors.primary }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primaryLight; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primary; }}
+            >
+              {t('books.editBook')}
             </Link>
           </p>
         )}
 
-        <hr style={{ marginBottom: 24, opacity: 0.2 }} />
+        {/* Divider */}
+        <div style={{ borderTop: `1px solid ${theme.colors.neutral800}`, marginBottom: theme.spacing.xl }} />
 
         {/* Reading section */}
-        <section aria-label="Reading record">
+        <section aria-label={t('books.yourReadingRecord')}>
           {existingReading ? (
-            <div>
-              <h2 style={{ marginBottom: 12 }}>Your Reading Record</h2>
-              <p>
-                <strong>Status:</strong>{' '}
-                {STATUS_LABELS[existingReading.status] ?? existingReading.status}
+            <div
+              style={{
+                background: '#1E1E1E',
+                border: `1px solid ${theme.colors.neutral800}`,
+                borderRadius: theme.radius.md,
+                padding: theme.spacing.lg,
+              }}
+            >
+              <h2 style={{ color: theme.colors.white, fontSize: theme.fontSizes.lg, marginBottom: theme.spacing.md }}>
+                {t('books.yourReadingRecord')}
+              </h2>
+              <p style={{ color: theme.colors.neutral400, marginBottom: 6 }}>
+                <strong style={{ color: theme.colors.white }}>{t('books.status')}:</strong>{' '}
+                {t(`readings.statusLabels.${existingReading.status}`, { defaultValue: existingReading.status })}
               </p>
               {existingReading.rating !== null && (
-                <p>
-                  <strong>Rating:</strong> {existingReading.rating} / 10
+                <p style={{ color: theme.colors.neutral400, marginBottom: 6 }}>
+                  <strong style={{ color: theme.colors.white }}>{t('books.rating')}:</strong>{' '}
+                  <span style={{ color: theme.colors.primary, fontWeight: 700 }}>{existingReading.rating}</span>
+                  <span style={{ color: theme.colors.neutral600 }}> {t('common.rating.outOf')}</span>
                 </p>
               )}
               {existingReading.review && (
-                <p>
-                  <strong>Review:</strong> {existingReading.review}
+                <p style={{ color: theme.colors.neutral400, marginBottom: 6 }}>
+                  <strong style={{ color: theme.colors.white }}>{t('books.review')}:</strong> {existingReading.review}
                 </p>
               )}
               {existingReading.startedAt && (
-                <p>
-                  <strong>Started:</strong>{' '}
+                <p style={{ color: theme.colors.neutral400, marginBottom: 6 }}>
+                  <strong style={{ color: theme.colors.white }}>{t('books.started')}:</strong>{' '}
                   {new Date(existingReading.startedAt).toLocaleDateString()}
                 </p>
               )}
               {existingReading.finishedAt && (
-                <p>
-                  <strong>Finished:</strong>{' '}
+                <p style={{ color: theme.colors.neutral400, marginBottom: 6 }}>
+                  <strong style={{ color: theme.colors.white }}>{t('books.finished')}:</strong>{' '}
                   {new Date(existingReading.finishedAt).toLocaleDateString()}
                 </p>
               )}
               <Link
                 to={`/readings/${existingReading.id}`}
-                style={{ display: 'inline-block', marginTop: 12 }}
+                style={{
+                  display: 'inline-block',
+                  marginTop: theme.spacing.md,
+                  color: theme.colors.primary,
+                  fontSize: theme.fontSizes.sm,
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primaryLight; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primary; }}
               >
-                Edit reading record →
+                {t('books.editReadingRecord')}
               </Link>
             </div>
           ) : (
             <div>
-              <p style={{ opacity: 0.7, marginBottom: 16 }}>
-                You haven't added this book to your library yet.
+              <p style={{ color: theme.colors.neutral400, marginBottom: theme.spacing.base }}>
+                {t('books.notInLibrary')}
               </p>
               {addError && (
-                <p role="alert" style={{ color: 'red', marginBottom: 12 }}>
+                <p role="alert" style={{ color: theme.colors.danger, marginBottom: theme.spacing.md }}>
                   {addError}
                 </p>
               )}
               <button
                 onClick={() => addMutation.mutate()}
                 disabled={addMutation.isPending}
-                style={{ padding: '10px 20px' }}
+                style={{
+                  background: theme.colors.primary,
+                  color: theme.colors.white,
+                  border: 'none',
+                  borderRadius: theme.radius.md,
+                  padding: '10px 20px',
+                  fontSize: theme.fontSizes.md,
+                  fontWeight: 600,
+                  cursor: addMutation.isPending ? 'not-allowed' : 'pointer',
+                  opacity: addMutation.isPending ? 0.7 : 1,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!addMutation.isPending) (e.currentTarget as HTMLElement).style.background = theme.colors.primaryDark;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = theme.colors.primary;
+                }}
               >
-                {addMutation.isPending ? 'Adding…' : '+ Add to Library'}
+                {addMutation.isPending ? t('books.adding') : t('books.addToLibrary')}
               </button>
             </div>
           )}
