@@ -317,6 +317,139 @@ Each task builds on the previous. Property-based tests use **jqwik** (`@Property
 
 ---
 
+---
+
+## Phase 4 — Frontend Enhancements (F1–F4)
+
+- [x] 31. Set up i18n infrastructure (F1)
+  - Install `react-i18next`, `i18next`, and `i18next-browser-languagedetector` as dependencies in `frontend/`
+  - Create `src/i18n/index.ts` with i18next configuration: `LanguageDetector` plugin, `initReactI18next`, `fallbackLng: 'pt-BR'`, `supportedLngs: ['pt-BR', 'en-US']`, detection order `['localStorage', 'navigator']`, `lookupLocalStorage: 'i18n_language'`
+  - Create `src/i18n/locales/pt-BR.json` with all UI strings in Brazilian Portuguese, organized by feature area: `nav`, `auth`, `books`, `cover`, `login`, `recommendations`, `readings`, `admin`, `common` (buttons, errors, empty states, validation messages)
+  - Create `src/i18n/locales/en-US.json` with the same key structure, all strings in American English
+  - Import `src/i18n/index.ts` at the top of `src/main.tsx` before the React tree renders
+  - _Requirements: 13.1, 13.2, 13.10, 13.11_
+
+- [x] 32. Implement LanguageSwitcher component and Navbar integration (F1)
+  - [x] 32.1 Create `src/components/LanguageSwitcher.tsx` — inline "PT | EN" toggle using `useTranslation()` from `react-i18next`
+    - Active language highlighted in brand orange `#E07020` with `font-weight: 600`
+    - Each button has `aria-pressed` set to `true`/`false` based on active locale
+    - Clicking a language calls `i18n.changeLanguage(locale)` — no dropdown, direct toggle
+    - _Requirements: 13.3, 13.4, 13.7, 13.8, 13.9_
+  - [x] 32.2 Update `src/components/Navbar.tsx` to render `<LanguageSwitcher />` on the right side, before any avatar or profile element
+    - Replace all hardcoded strings in `Navbar.tsx` with `t()` calls using the `nav.*` translation keys
+    - _Requirements: 13.6, 13.7_
+  - [ ]* 32.3 Write Vitest unit test for `LanguageSwitcher`
+    - Test that clicking "EN" calls `i18n.changeLanguage('en-US')` and sets `aria-pressed="true"` on the EN button
+    - Test that clicking "PT" calls `i18n.changeLanguage('pt-BR')` and sets `aria-pressed="true"` on the PT button
+    - **Property 28: Language switcher persists preference to localStorage**
+    - **Validates: Requirements 13.4, 13.2**
+
+- [x] 33. Migrate all existing components and pages to use i18n (F1)
+  - [x] 33.1 Update all pages under `src/pages/` to replace hardcoded static text with `useTranslation()` and `t()` calls
+    - Pages to update: `RegisterPage.tsx`, `BookListPage.tsx`, `BookDetailPage.tsx`, `MyReadingsPage.tsx`, `ReadingDetailPage.tsx`, `ProfilePage.tsx`
+    - Replace form labels, placeholders, button labels, page titles, empty-state messages, and validation error messages
+    - _Requirements: 13.5, 13.6_
+  - [x] 33.2 Update all admin pages under `src/pages/admin/` to use `t()` for all static text
+    - Pages to update: `AdminBookFormPage.tsx`, `AdminAuthorListPage.tsx`, `AdminAuthorFormPage.tsx`, `AdminPublisherListPage.tsx`, `AdminPublisherFormPage.tsx`
+    - _Requirements: 13.5, 13.6_
+  - [x] 33.3 Update shared components `src/components/BookCard.tsx`, `src/components/Pagination.tsx`, `src/components/ReadingStatusBadge.tsx`, `src/components/StarRating.tsx` to use `t()` for any static text
+    - _Requirements: 13.5, 13.6_
+
+- [x] 34. Checkpoint — i18n baseline
+  - Ensure all Vitest tests pass. Verify that switching language in the browser updates all visible UI text immediately without a page reload. Ask the user if questions arise.
+
+- [ ] 35. Implement getLanguageInstruction utility (F2)
+  - [ ] 35.1 Create `src/utils/getLanguageInstruction.ts` — pure function `getLanguageInstruction(locale: string): string`
+    - Returns `"Responda em português do Brasil."` for `'pt-BR'`
+    - Returns `"Reply in English (US)."` for `'en-US'`
+    - Returns `"Reply in English (US)."` as default for any unrecognized locale
+    - _Requirements: 14.2, 14.3, 14.4_
+  - [ ]* 35.2 Write Vitest property test for `getLanguageInstruction`
+    - **Property 29: getLanguageInstruction returns correct string for each locale**
+    - Test `'pt-BR'` → exact string `"Responda em português do Brasil."`
+    - Test `'en-US'` → exact string `"Reply in English (US)."`
+    - Test arbitrary string inputs never throw an exception
+    - **Validates: Requirements 14.2, 14.3, 14.4**
+  - [ ] 35.3 Update the recommendation API call in `src/api/` (or `src/pages/`) to append `getLanguageInstruction(i18n.language)` to the AI prompt when calling the external recommendation API
+    - Ensure all recommendation display text in components uses `t()` keys, not hardcoded strings
+    - _Requirements: 14.1, 14.3, 14.4, 14.5, 14.6_
+
+- [ ] 36. Redesign LoginPage with split-screen layout (F4)
+  - [ ] 36.1 Add `src/assets/images/login-bg.jpg` — download a library/bookshelf image from Unsplash or reference a public URL; place the file in the assets directory
+    - _Requirements: 16.1, 16.7_
+  - [ ] 36.2 Redesign `src/pages/LoginPage.tsx` with a two-panel flex layout
+    - Left panel (`flex: 0 0 60%`): background image via CSS `background-image`, gradient overlay `linear-gradient(135deg, rgba(0,0,0,0.7), rgba(224,112,32,0.15))`, and `<blockquote>` with `t('login.quote')` in italic serif font, white at 0.85 opacity, 18px
+    - Right panel (`flex: 0 0 40%`): dark background `#1a1a1a`, GMLib logo centered above the existing login form
+    - Left panel has `aria-hidden="true"` since it is decorative
+    - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.9, 16.10_
+  - [ ] 36.3 Add responsive CSS: at `max-width: 767px`, hide the left panel (`display: none`) and apply the background image as a blurred full-screen background behind the right panel using `backdrop-filter: blur(8px)` and a dark overlay
+    - Add `background-color: #1a1a1a` fallback on the left panel for when the image is unavailable
+    - _Requirements: 16.8, 16.9_
+  - [ ]* 36.4 Write Vitest unit test for `LoginPage`
+    - Test that the quote renders the PT-BR text when locale is `pt-BR`
+    - Test that the quote renders the EN-US text when locale is `en-US`
+    - Test that the login form fields and submit button are present and functional
+    - _Requirements: 16.4, 16.5, 16.10_
+
+- [ ] 37. Checkpoint — Login screen and i18n integration
+  - Ensure all Vitest tests pass. Verify the split-screen layout renders correctly at ≥768px and collapses to single-panel at <768px. Ask the user if questions arise.
+
+- [ ] 38. Add Flyway migration and backend DTO updates for book cover URL (F3)
+  - Create `backend/src/main/resources/db/migration/V7__add_cover_url_to_books.sql` — add optional `cover_url VARCHAR(2048)` column to the `books` table with `ALTER TABLE books ADD COLUMN cover_url VARCHAR(2048)`
+  - Update `backend/.../catalog/api/dto/BookRequest.java` to include optional `coverUrl` field (nullable `String`)
+  - Update `backend/.../catalog/api/dto/BookResponse.java` to include optional `coverUrl` field
+  - Update `backend/.../catalog/application/dto/BookRequest.java` and `BookResponse.java` (application layer DTOs) to include `coverUrl`
+  - Update `backend/.../catalog/domain/Book.java` entity to include `coverUrl` field (`@Column(name = "cover_url", length = 2048)`, nullable)
+  - Update `backend/.../catalog/application/BookServiceImpl.java` to map `coverUrl` from request to entity on create/update, and include it in the response
+  - _Requirements: 15.7_
+
+- [ ] 39. Implement bookCoverService (F3)
+  - [ ] 39.1 Create `src/services/bookCoverService.ts` with two exported async functions:
+    - `fetchCoverByISBN(isbn: string): Promise<string | null>` — calls Open Library Covers API (`https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg`) with a HEAD request to validate the image is not a placeholder (Content-Length < 1000 bytes → return null); catches all errors and returns null
+    - `fetchCoverByTitleAuthor(title: string, author: string): Promise<string | null>` — searches `https://openlibrary.org/search.json?title=...&author=...&limit=1&fields=isbn`, extracts the first ISBN, delegates to `fetchCoverByISBN`; catches all errors and returns null
+    - _Requirements: 15.9, 15.10, 15.11_
+  - [ ]* 39.2 Write Vitest property tests for `bookCoverService`
+    - **Property 30: bookCoverService returns null on network error, never throws**
+    - Mock `fetch` to simulate network failure, HTTP 4xx, HTTP 5xx, and malformed JSON responses
+    - Assert both functions return `null` and do not throw for all error scenarios
+    - **Validates: Requirements 15.11**
+
+- [ ] 40. Implement BookCoverFetcher component (F3)
+  - [ ] 40.1 Create `src/components/BookCoverFetcher.tsx` with props `isbn?`, `title?`, `author?`, `onCoverFound(url: string)` and internal state `{ loading, coverUrl, error }`
+    - On ISBN `onBlur` trigger: calls `fetchCoverByISBN(isbn)` automatically
+    - "Search by title/author" button (shown when no ISBN): calls `fetchCoverByTitleAuthor(title, author)`
+    - Loading state: renders a spinner/skeleton in the 200×300px preview area
+    - Cover found: renders `<img>` at 200×300px with `object-fit: cover`, `border-radius: 8px`, calls `onCoverFound(url)`
+    - Cover not found / error: renders fallback placeholder with book icon and `t('cover.notFound')` text
+    - _Requirements: 15.3, 15.4, 15.5, 15.8_
+  - [ ]* 40.2 Write Vitest unit tests for `BookCoverFetcher`
+    - **Property 31: BookCoverFetcher shows fallback when no cover found**
+    - Test: when `bookCoverService` returns `null`, the fallback placeholder is rendered and no `<img>` element is present
+    - Test: when `bookCoverService` returns a URL, the `<img>` is rendered and `onCoverFound` is called with the URL
+    - Test: loading spinner is shown while the service call is in progress
+    - **Validates: Requirements 15.5, 15.13**
+  - [ ] 40.3 Update `src/pages/admin/AdminBookFormPage.tsx` to include `<BookCoverFetcher>` with `onBlur` trigger on the ISBN field
+    - Wire `onCoverFound` to update the form state's `coverUrl` field
+    - Include the `coverUrl` in the payload sent to `POST /books` or `PUT /books/:id`
+    - _Requirements: 15.1, 15.2, 15.6, 15.7_
+
+- [ ] 41. Update TypeScript types and BookCard for cover display (F3)
+  - [ ] 41.1 Update `src/types/index.ts` — add `coverUrl?: string | null` to the `Book` interface and `coverUrl?: string | null` to the `BookRequest` interface
+    - _Requirements: 15.12, 15.13_
+  - [ ] 41.2 Update `src/components/BookCard.tsx` to display a cover thumbnail at 80×120px with `object-fit: cover` when `book.coverUrl` is available
+    - When `coverUrl` is null or undefined, render a dark gray (`#2a2a2a`) fallback div with a centered book icon
+    - _Requirements: 15.12, 15.13_
+  - [ ]* 41.3 Write Vitest unit tests for the updated `BookCard`
+    - Test: renders cover `<img>` at 80×120px when `coverUrl` is a non-empty string
+    - Test: renders dark gray fallback div (no `<img>`) when `coverUrl` is null
+    - Test: renders dark gray fallback div (no `<img>`) when `coverUrl` is undefined
+    - _Requirements: 15.12, 15.13_
+
+- [ ] 42. Final Phase 4 checkpoint
+  - Ensure all Vitest tests pass. Verify the cover fetcher triggers on ISBN blur in the admin book form. Verify BookCard renders cover thumbnails and fallbacks correctly. Verify language switching updates all UI text including the login quote. Ask the user if questions arise.
+
+---
+
 ## Notes
 
 - Tasks marked with `*` are optional and can be skipped for a faster MVP

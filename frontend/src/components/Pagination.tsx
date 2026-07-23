@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+import { theme } from '../theme';
+
 interface Props {
   /** Zero-based current page index. */
   page: number;
@@ -16,6 +19,8 @@ interface Props {
  * Requirements: 11.1
  */
 export default function Pagination({ page, totalPages, onPageChange }: Props) {
+  const { t } = useTranslation();
+
   if (totalPages <= 1) return null;
 
   // Build a compact window: always show first, last, current ±1, with ellipsis
@@ -35,13 +40,57 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
 
   const pages = buildPages();
 
+  const baseBtn: React.CSSProperties = {
+    background: 'transparent',
+    border: `1px solid ${theme.colors.neutral800}`,
+    color: theme.colors.neutral400,
+    borderRadius: 6,
+    padding: '4px 10px',
+    fontSize: theme.fontSizes.sm,
+    cursor: 'pointer',
+    transition: 'border-color 0.15s, color 0.15s',
+  };
+
+  const activeBtn: React.CSSProperties = {
+    ...baseBtn,
+    background: theme.colors.primary,
+    borderColor: theme.colors.primary,
+    color: theme.colors.white,
+    fontWeight: 700,
+    cursor: 'default',
+  };
+
+  const disabledBtn: React.CSSProperties = {
+    ...baseBtn,
+    opacity: 0.3,
+    cursor: 'not-allowed',
+  };
+
+  function hoverOn(e: React.MouseEvent<HTMLButtonElement>) {
+    const btn = e.currentTarget;
+    if (!btn.disabled) {
+      btn.style.borderColor = theme.colors.primary;
+      btn.style.color = theme.colors.primary;
+    }
+  }
+
+  function hoverOff(e: React.MouseEvent<HTMLButtonElement>) {
+    const btn = e.currentTarget;
+    if (!btn.disabled) {
+      btn.style.borderColor = theme.colors.neutral800;
+      btn.style.color = theme.colors.neutral400;
+    }
+  }
+
   return (
-    <nav aria-label="Pagination" style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+    <nav aria-label={t('common.pagination.nav')} style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page === 0}
-        aria-label="Previous page"
-        style={{ padding: '4px 10px' }}
+        aria-label={t('common.pagination.previous')}
+        style={page === 0 ? disabledBtn : baseBtn}
+        onMouseEnter={hoverOn}
+        onMouseLeave={hoverOff}
       >
         ‹
       </button>
@@ -49,23 +98,25 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       {pages.map((p, idx) => {
         if (p === 'ellipsis-start' || p === 'ellipsis-end') {
           return (
-            <span key={`${p}-${idx}`} style={{ padding: '4px 6px', opacity: 0.5 }}>
+            <span
+              key={`${p}-${idx}`}
+              style={{ padding: '4px 6px', color: theme.colors.neutral600, fontSize: theme.fontSizes.sm }}
+            >
               …
             </span>
           );
         }
+        const isActive = p === page;
         return (
           <button
             key={p}
             onClick={() => onPageChange(p)}
-            disabled={p === page}
-            aria-label={`Page ${p + 1}`}
-            aria-current={p === page ? 'page' : undefined}
-            style={{
-              padding: '4px 10px',
-              fontWeight: p === page ? 700 : 400,
-              textDecoration: p === page ? 'underline' : 'none',
-            }}
+            disabled={isActive}
+            aria-label={t('common.pagination.page', { number: p + 1 })}
+            aria-current={isActive ? 'page' : undefined}
+            style={isActive ? activeBtn : baseBtn}
+            onMouseEnter={isActive ? undefined : hoverOn}
+            onMouseLeave={isActive ? undefined : hoverOff}
           >
             {p + 1}
           </button>
@@ -75,8 +126,10 @@ export default function Pagination({ page, totalPages, onPageChange }: Props) {
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages - 1}
-        aria-label="Next page"
-        style={{ padding: '4px 10px' }}
+        aria-label={t('common.pagination.next')}
+        style={page >= totalPages - 1 ? disabledBtn : baseBtn}
+        onMouseEnter={hoverOn}
+        onMouseLeave={hoverOff}
       >
         ›
       </button>

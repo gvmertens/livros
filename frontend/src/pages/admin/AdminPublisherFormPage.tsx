@@ -1,10 +1,32 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { getPublisher, createPublisher, updatePublisher } from '../../api/publishers';
 import Navbar from '../../components/Navbar';
+import { theme } from '../../theme';
 import type { ErrorResponse } from '../../types';
 import type { AxiosError } from 'axios';
+
+const darkInputStyle: React.CSSProperties = {
+  width: '100%',
+  background: theme.colors.black,
+  border: `1px solid ${theme.colors.neutral800}`,
+  color: theme.colors.white,
+  borderRadius: theme.radius.sm,
+  padding: '10px 12px',
+  fontSize: theme.fontSizes.md,
+  outline: 'none',
+  transition: 'border-color 0.15s',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  marginBottom: 6,
+  color: theme.colors.neutral400,
+  fontSize: theme.fontSizes.sm,
+  fontWeight: 500,
+};
 
 /**
  * Admin publisher form page — handles both create and edit.
@@ -15,6 +37,7 @@ import type { AxiosError } from 'axios';
  * Requirements: 6.1, 6.2, 6.7
  */
 export default function AdminPublisherFormPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
@@ -45,7 +68,7 @@ export default function AdminPublisherFormPage() {
     onError: (err) => {
       const axiosErr = err as AxiosError<ErrorResponse>;
       setServerError(
-        axiosErr.response?.data?.message ?? 'Failed to save publisher.',
+        axiosErr.response?.data?.message ?? t('admin.publishers.saveFailed'),
       );
     },
   });
@@ -55,7 +78,7 @@ export default function AdminPublisherFormPage() {
     setFieldError('');
     setServerError('');
     if (!name.trim()) {
-      setFieldError('Name is required.');
+      setFieldError(t('admin.publishers.nameRequired'));
       return;
     }
     mutation.mutate({ name: name.trim() });
@@ -63,63 +86,116 @@ export default function AdminPublisherFormPage() {
 
   if (isEdit && isLoading) {
     return (
-      <div>
+      <div style={{ minHeight: '100vh', background: theme.colors.black }}>
         <Navbar />
-        <main style={{ maxWidth: 500, margin: '0 auto', padding: '24px 16px' }}>
-          <p aria-live="polite">Loading…</p>
+        <main style={{ maxWidth: 520, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+          <p aria-live="polite" style={{ color: theme.colors.neutral400 }}>{t('common.loading')}</p>
         </main>
       </div>
     );
   }
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', background: theme.colors.black }}>
       <Navbar />
 
-      <main style={{ maxWidth: 500, margin: '0 auto', padding: '24px 16px' }}>
-        <Link to="/admin/publishers" style={{ fontSize: 14, opacity: 0.7 }}>
-          ← Back to Publishers
+      <main style={{ maxWidth: 520, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+        <Link
+          to="/admin/publishers"
+          style={{ fontSize: theme.fontSizes.sm, color: theme.colors.neutral400, transition: 'color 0.15s' }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.primary; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = theme.colors.neutral400; }}
+        >
+          {t('admin.publishers.backToList')}
         </Link>
 
-        <h1 style={{ marginTop: 16, marginBottom: 24 }}>
-          {isEdit ? 'Edit Publisher' : 'New Publisher'}
+        <h1 style={{ color: theme.colors.white, fontSize: 28, fontWeight: 700, marginTop: theme.spacing.base, marginBottom: theme.spacing.xl }}>
+          {isEdit ? t('admin.publishers.editTitle') : t('admin.publishers.newTitle')}
         </h1>
 
         {serverError && (
-          <p role="alert" style={{ color: 'red', marginBottom: 16 }}>
+          <p role="alert" style={{ color: theme.colors.danger, marginBottom: theme.spacing.base }}>
             {serverError}
           </p>
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          <div style={{ marginBottom: 20 }}>
-            <label htmlFor="publisher-name" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              Name <span aria-hidden="true">*</span>
+          <div style={{ marginBottom: theme.spacing.lg }}>
+            <label htmlFor="publisher-name" style={labelStyle}>
+              {t('admin.publishers.nameLabel')} <span aria-hidden="true">*</span>
             </label>
             <input
               id="publisher-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', fontSize: 15 }}
+              placeholder={t('admin.publishers.namePlaceholder')}
+              style={darkInputStyle}
+              onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+              onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
               aria-required="true"
               aria-describedby={fieldError ? 'name-error' : undefined}
               aria-invalid={!!fieldError}
             />
             {fieldError && (
-              <span id="name-error" style={{ color: 'red', fontSize: 13 }}>
+              <span id="name-error" style={{ color: theme.colors.danger, fontSize: theme.fontSizes.sm }}>
                 {fieldError}
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button type="submit" disabled={mutation.isPending} style={{ padding: '10px 20px' }}>
-              {mutation.isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Publisher'}
+          <div style={{ display: 'flex', gap: theme.spacing.md }}>
+            <button
+              type="submit"
+              disabled={mutation.isPending}
+              style={{
+                background: theme.colors.primary,
+                color: theme.colors.white,
+                border: 'none',
+                borderRadius: theme.radius.md,
+                padding: '10px 20px',
+                fontSize: theme.fontSizes.md,
+                fontWeight: 600,
+                cursor: mutation.isPending ? 'not-allowed' : 'pointer',
+                opacity: mutation.isPending ? 0.7 : 1,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                if (!mutation.isPending) (e.currentTarget as HTMLElement).style.background = theme.colors.primaryDark;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = theme.colors.primary;
+              }}
+            >
+              {mutation.isPending
+                ? t('admin.publishers.saving')
+                : isEdit
+                  ? t('admin.publishers.saveButton')
+                  : t('admin.publishers.createButton')}
             </button>
             <Link to="/admin/publishers">
-              <button type="button" style={{ padding: '10px 20px' }}>
-                Cancel
+              <button
+                type="button"
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${theme.colors.neutral800}`,
+                  color: theme.colors.neutral400,
+                  borderRadius: theme.radius.md,
+                  padding: '10px 20px',
+                  fontSize: theme.fontSizes.md,
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s, color 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral400;
+                  (e.currentTarget as HTMLElement).style.color = theme.colors.white;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800;
+                  (e.currentTarget as HTMLElement).style.color = theme.colors.neutral400;
+                }}
+              >
+                {t('common.cancel')}
               </button>
             </Link>
           </div>

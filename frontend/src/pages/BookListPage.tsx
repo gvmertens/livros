@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { listBooks } from '../api/books';
 import Navbar from '../components/Navbar';
 import BookCard from '../components/BookCard';
 import Pagination from '../components/Pagination';
+import { theme } from '../theme';
 
 const PAGE_SIZE = 20;
 const DEBOUNCE_MS = 350;
@@ -18,6 +20,7 @@ const DEBOUNCE_MS = 350;
  * Requirements: 7.5, 11.1, 11.4
  */
 export default function BookListPage() {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -42,62 +45,96 @@ export default function BookListPage() {
   });
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', background: theme.colors.black }}>
       <Navbar />
 
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
-        <h1 style={{ marginBottom: 20 }}>Books</h1>
+      <main style={{ maxWidth: 960, margin: '0 auto', padding: `${theme.spacing.xxl}px ${theme.spacing.xl}px` }}>
+        <h1
+          style={{
+            color: theme.colors.white,
+            fontSize: 28,
+            fontWeight: 700,
+            marginBottom: theme.spacing.xl,
+          }}
+        >
+          {t('books.title')}
+        </h1>
 
         {/* Search */}
-        <div style={{ marginBottom: 24 }}>
-          <label htmlFor="book-search" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>
-            Search by title or author
+        <div style={{ marginBottom: theme.spacing.xl }}>
+          <label
+            htmlFor="book-search"
+            style={{
+              display: 'block',
+              marginBottom: 6,
+              color: theme.colors.neutral400,
+              fontSize: theme.fontSizes.sm,
+            }}
+          >
+            {t('books.searchLabel')}
           </label>
           <input
             id="book-search"
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="e.g. Tolkien, Dune…"
-            style={{ width: '100%', maxWidth: 400, padding: '8px 12px', fontSize: 15 }}
-            aria-label="Search books"
+            placeholder={t('books.searchPlaceholder')}
+            style={{
+              width: '100%',
+              maxWidth: 400,
+              background: theme.colors.black,
+              border: `1px solid ${theme.colors.neutral800}`,
+              color: theme.colors.white,
+              borderRadius: theme.radius.sm,
+              padding: '10px 12px',
+              fontSize: theme.fontSizes.md,
+              outline: 'none',
+            }}
+            onFocus={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.primary; }}
+            onBlur={(e) => { (e.currentTarget as HTMLElement).style.borderColor = theme.colors.neutral800; }}
+            aria-label={t('books.searchLabel')}
           />
         </div>
 
         {/* Loading state */}
-        {isLoading && <p aria-live="polite">Loading books…</p>}
+        {isLoading && (
+          <p aria-live="polite" style={{ color: theme.colors.neutral400 }}>
+            {t('books.loading')}
+          </p>
+        )}
 
         {/* Error state */}
         {isError && (
-          <p role="alert" style={{ color: 'red' }}>
-            Failed to load books:{' '}
-            {error instanceof Error ? error.message : 'Unknown error'}
+          <p role="alert" style={{ color: theme.colors.danger }}>
+            {t('books.loadError')}{' '}
+            {error instanceof Error ? error.message : t('common.unknownError')}
           </p>
         )}
 
         {/* Empty state */}
         {!isLoading && !isError && data?.content.length === 0 && (
-          <p style={{ opacity: 0.6 }}>
+          <p style={{ color: theme.colors.neutral600, fontSize: theme.fontSizes.sm }}>
             {debouncedSearch
-              ? `No books found matching "${debouncedSearch}".`
-              : 'No books in the catalog yet.'}
+              ? t('books.emptySearch', { query: debouncedSearch })
+              : t('books.emptyCatalog')}
           </p>
         )}
 
         {/* Book grid */}
         {data && data.content.length > 0 && (
           <>
-            <p style={{ fontSize: 13, opacity: 0.6, marginBottom: 16 }}>
-              {data.totalElements} book{data.totalElements !== 1 ? 's' : ''} found
-              {debouncedSearch ? ` for "${debouncedSearch}"` : ''}
+            <p style={{ fontSize: theme.fontSizes.sm, color: theme.colors.neutral600, marginBottom: theme.spacing.base }}>
+              {debouncedSearch
+                ? t('books.foundCountSearch', { count: data.totalElements, query: debouncedSearch })
+                : t('books.foundCount', { count: data.totalElements })}
             </p>
 
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: 16,
-                marginBottom: 32,
+                gap: theme.spacing.base,
+                marginBottom: theme.spacing.xxl,
               }}
             >
               {data.content.map((book) => (

@@ -1052,3 +1052,773 @@ quarkus.log.console.format=%d{HH:mm:ss} %-5p [%c{2.}] [%X{correlationId}] %s%e%n
 - `BookListPage` search and pagination
 - `MyReadingsPage` status filter
 - `AdminBookFormPage` create/edit form submission
+
+
+---
+
+## Frontend Architecture — Phase 4 Enhancements (F1–F4)
+
+### Updated Frontend Project Structure
+
+The following files are added to the existing structure for the F1–F4 features:
+
+```
+frontend/
+└── src/
+    ├── api/
+    │   └── ... (existing)
+    ├── auth/
+    │   └── ... (existing)
+    ├── components/
+    │   ├── Navbar.tsx              # Updated: includes LanguageSwitcher
+    │   ├── BookCard.tsx            # Updated: displays cover thumbnail with fallback
+    │   ├── LanguageSwitcher.tsx    # NEW (F1): inline "PT | EN" toggle
+    │   └── BookCoverFetcher.tsx    # NEW (F3): cover search + preview component
+    ├── i18n/
+    │   ├── index.ts                # NEW (F1): i18next configuration
+    │   └── locales/
+    │       ├── pt-BR.json          # NEW (F1): all UI strings in Brazilian Portuguese
+    │       └── en-US.json          # NEW (F1): all UI strings in American English
+    ├── pages/
+    │   ├── LoginPage.tsx           # Updated (F4): split-screen layout
+    │   └── ... (existing)
+    ├── services/
+    │   └── bookCoverService.ts     # NEW (F3): Open Library cover fetch service
+    ├── utils/
+    │   └── getLanguageInstruction.ts  # NEW (F2): AI prompt language instruction utility
+    ├── assets/
+    │   └── images/
+    │       └── login-bg.jpg        # NEW (F4): local fallback library background image
+    └── types/
+        └── index.ts                # Updated: Book/BookRequest/BookResponse include optional coverUrl
+```
+
+---
+
+### F1 — i18n Architecture
+
+#### Overview
+
+Internationalization is implemented using `react-i18next` and `i18next`. The application supports two locales: `pt-BR` (Brazilian Portuguese, default) and `en-US` (American English). Language preference is persisted in `localStorage` and restored on the next session.
+
+#### i18next Configuration (`src/i18n/index.ts`)
+
+```typescript
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import ptBR from './locales/pt-BR.json';
+import enUS from './locales/en-US.json';
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      'pt-BR': { translation: ptBR },
+      'en-US': { translation: enUS },
+    },
+    fallbackLng: 'pt-BR',
+    supportedLngs: ['pt-BR', 'en-US'],
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'i18n_language',
+      caches: ['localStorage'],
+    },
+    interpolation: {
+      escapeValue: false, // React already escapes values
+    },
+  });
+
+export default i18n;
+```
+
+The `i18next-browser-languagedetector` plugin handles reading and writing the `i18n_language` key in `localStorage` automatically. The `fallbackLng: 'pt-BR'` ensures that if no preference is stored and the browser language is not `en-US`, the interface defaults to Portuguese.
+
+#### Locale File Structure
+
+Both locale files share the same key structure. Keys are organized by feature area:
+
+```json
+// src/i18n/locales/pt-BR.json (excerpt)
+{
+  "nav": {
+    "books": "Livros",
+    "myReadings": "Minhas Leituras",
+    "recommendations": "Recomendações",
+    "profile": "Perfil",
+    "logout": "Sair"
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Cadastrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "name": "Nome"
+  },
+  "books": {
+    "search": "Buscar livros...",
+    "addToLibrary": "Adicionar à Biblioteca",
+    "isbn": "ISBN",
+    "title": "Título",
+    "author": "Autor",
+    "publisher": "Editora"
+  },
+  "cover": {
+    "notFound": "Capa não encontrada",
+    "loading": "Buscando capa...",
+    "searchByTitle": "Buscar por título/autor"
+  },
+  "login": {
+    "quote": "\"Um leitor vive mil vidas antes de morrer. Quem nunca lê, vive apenas uma.\" — George R.R. Martin"
+  },
+  "recommendations": {
+    "generatedIn": "Gerado em PT"
+  }
+}
+```
+
+```json
+// src/i18n/locales/en-US.json (excerpt)
+{
+  "nav": {
+    "books": "Books",
+    "myReadings": "My Readings",
+    "recommendations": "Recommendations",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name"
+  },
+  "books": {
+    "search": "Search books...",
+    "addToLibrary": "Add to Library",
+    "isbn": "ISBN",
+    "title": "Title",
+    "author": "Author",
+    "publisher": "Publisher"
+  },
+  "cover": {
+    "notFound": "Cover not found",
+    "loading": "Searching for cover...",
+    "searchByTitle": "Search by title/author"
+  },
+  "login": {
+    "quote": "\"A reader lives a thousand lives before he dies. The man who never reads lives only one.\" — George R.R. Martin"
+  },
+  "recommendations": {
+    "generatedIn": "Generated in EN"
+  }
+}
+```
+
+#### LanguageSwitcher Component (`src/components/LanguageSwitcher.tsx`)
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const LOCALES = ['pt-BR', 'en-US'] as const;
+type Locale = typeof LOCALES[number];
+
+const LABELS: Record<Locale, string> = {
+  'pt-BR': 'PT',
+  'en-US': 'EN',
+};
+
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  const active = i18n.language as Locale;
+
+  return (
+    <div className="language-switcher" aria-label="Language selector">
+      {LOCALES.map((locale, idx) => (
+        <span key={locale}>
+          {idx > 0 && <span className="separator" aria-hidden="true"> | </span>}
+          <button
+            className={`lang-btn ${active === locale ? 'active' : ''}`}
+            style={active === locale ? { color: '#E07020', fontWeight: 600 } : {}}
+            onClick={() => i18n.changeLanguage(locale)}
+            aria-pressed={active === locale}
+            aria-label={`Switch to ${LABELS[locale]}`}
+          >
+            {LABELS[locale]}
+          </button>
+        </span>
+      ))}
+    </div>
+  );
+}
+```
+
+**Design decisions:**
+- No dropdown — direct toggle between two languages on click.
+- Active language rendered in brand orange `#E07020` with `font-weight: 600`.
+- `aria-pressed` attribute ensures screen readers announce the active state.
+- Positioned in `Navbar.tsx` on the right side, before the avatar/profile element.
+
+#### Navbar Integration
+
+```typescript
+// src/components/Navbar.tsx (updated right section)
+<nav className="navbar">
+  <div className="navbar-left">...</div>
+  <div className="navbar-right">
+    <LanguageSwitcher />
+    <UserAvatar />
+  </div>
+</nav>
+```
+
+#### App Bootstrap
+
+`src/i18n/index.ts` is imported once at the top of `src/main.tsx` before the React tree is rendered, ensuring i18next is initialized before any component calls `useTranslation()`:
+
+```typescript
+// src/main.tsx
+import './i18n/index';  // initialize i18next before rendering
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+---
+
+### F2 — Language-Aware Recommendations
+
+#### Overview
+
+When the frontend calls an external AI API to generate book recommendations, it must instruct the model to respond in the user's active language. This is achieved through a pure utility function that maps a locale code to a natural-language instruction string, which is then appended to the AI prompt at call time.
+
+#### getLanguageInstruction Utility (`src/utils/getLanguageInstruction.ts`)
+
+```typescript
+/**
+ * Returns the language instruction to append to AI API prompts
+ * based on the active i18next locale.
+ *
+ * @param locale - The active locale code (e.g., 'pt-BR', 'en-US')
+ * @returns A natural-language instruction string for the AI model
+ */
+export function getLanguageInstruction(locale: string): string {
+  switch (locale) {
+    case 'pt-BR':
+      return 'Responda em português do Brasil.';
+    case 'en-US':
+      return 'Reply in English (US).';
+    default:
+      return 'Reply in English (US).';
+  }
+}
+```
+
+**Design decisions:**
+- Pure function with no side effects — trivially testable and composable.
+- Falls back to English for any unrecognized locale, ensuring the AI always receives a valid instruction.
+- No dependency on i18next internals — takes a plain string, making it easy to test in isolation.
+
+#### Integration into AI Prompt Construction
+
+When the recommendation service calls an external AI API, the language instruction is appended to the prompt:
+
+```typescript
+// Example usage in recommendation API call
+import { getLanguageInstruction } from '../utils/getLanguageInstruction';
+
+async function buildRecommendationPrompt(userHistory: ReadingHistory): Promise<string> {
+  const { i18n } = useTranslation(); // or pass locale as parameter
+  const languageInstruction = getLanguageInstruction(i18n.language);
+
+  return `Based on the following reading history, recommend 5 books:
+${formatReadingHistory(userHistory)}
+
+${languageInstruction}`;
+}
+```
+
+**Note:** The `getLanguageInstruction` call is made at prompt-construction time (not at component mount), so switching language and then triggering a new recommendation fetch will automatically use the new locale.
+
+#### Rule-Based Recommendation Text
+
+For any recommendation text generated from local/rule-based logic (not an AI API), all strings must use i18n translation keys:
+
+```typescript
+// Correct — uses i18n key
+const { t } = useTranslation();
+<p>{t('recommendations.basedOnRating', { title: book.title })}</p>
+
+// Incorrect — hardcoded string
+<p>Based on your rating of {book.title}</p>
+```
+
+Corresponding entries must exist in both `pt-BR.json` and `en-US.json`.
+
+---
+
+### F3 — Book Cover Service
+
+#### Overview
+
+The book cover feature consists of two parts: a service module that fetches cover URLs from external APIs, and a UI component that integrates the service into book registration and edit forms. Book cards in list views also display cover thumbnails.
+
+#### bookCoverService (`src/services/bookCoverService.ts`)
+
+```typescript
+const OPEN_LIBRARY_COVER_BASE = 'https://covers.openlibrary.org/b/isbn';
+const OPEN_LIBRARY_SEARCH_BASE = 'https://openlibrary.org/search.json';
+
+/**
+ * Fetches a book cover URL using the ISBN via Open Library Covers API.
+ * Returns null on any error (network failure, 404, etc.) — never throws.
+ */
+export async function fetchCoverByISBN(isbn: string): Promise<string | null> {
+  if (!isbn?.trim()) return null;
+
+  const url = `${OPEN_LIBRARY_COVER_BASE}/${encodeURIComponent(isbn.trim())}-L.jpg`;
+
+  try {
+    // Open Library returns a 1×1 placeholder for unknown ISBNs.
+    // We probe with a HEAD request to check Content-Length before committing.
+    const response = await fetch(url, { method: 'HEAD' });
+    if (!response.ok) return null;
+
+    const contentLength = response.headers.get('content-length');
+    // A valid cover image is always larger than 1 KB; the placeholder is ~807 bytes.
+    if (contentLength && parseInt(contentLength, 10) < 1000) return null;
+
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetches a book cover URL using title and author as fallback lookup keys.
+ * Searches Open Library for a matching ISBN, then resolves the cover URL.
+ * Returns null on any error — never throws.
+ */
+export async function fetchCoverByTitleAuthor(
+  title: string,
+  author: string
+): Promise<string | null> {
+  if (!title?.trim()) return null;
+
+  try {
+    const params = new URLSearchParams({ title: title.trim() });
+    if (author?.trim()) params.set('author', author.trim());
+
+    const searchUrl = `${OPEN_LIBRARY_SEARCH_BASE}?${params.toString()}&limit=1&fields=isbn`;
+    const response = await fetch(searchUrl);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const firstDoc = data?.docs?.[0];
+    const isbn = firstDoc?.isbn?.[0];
+    if (!isbn) return null;
+
+    return fetchCoverByISBN(isbn);
+  } catch {
+    return null;
+  }
+}
+```
+
+**Design decisions:**
+- Both functions are `async` and return `Promise<string | null>`. They catch all exceptions internally and return `null` — callers never need to handle errors from this service.
+- The HEAD-request probe for `fetchCoverByISBN` avoids displaying Open Library's 1×1 placeholder image as a valid cover.
+- `fetchCoverByTitleAuthor` delegates to `fetchCoverByISBN` once it finds a matching ISBN, keeping the cover URL format consistent.
+- No caching in Phase 4 — React Query at the component level handles deduplication.
+
+#### BookCoverFetcher Component (`src/components/BookCoverFetcher.tsx`)
+
+```typescript
+interface BookCoverFetcherProps {
+  isbn?: string;
+  title?: string;
+  author?: string;
+  onCoverFound: (url: string) => void;
+}
+
+interface CoverState {
+  loading: boolean;
+  coverUrl: string | null;
+  error: boolean;
+}
+```
+
+**Component behavior:**
+
+| Trigger | Action |
+|---|---|
+| ISBN field `onBlur` | Calls `fetchCoverByISBN(isbn)` automatically |
+| "Search by title/author" button click | Calls `fetchCoverByTitleAuthor(title, author)` |
+| Cover found | Displays 200×300px preview; calls `onCoverFound(url)` |
+| Cover not found / error | Displays placeholder with book icon + translated "Cover not found" text |
+| Loading | Displays spinner/skeleton in the preview area |
+
+```typescript
+export function BookCoverFetcher({ isbn, title, author, onCoverFound }: BookCoverFetcherProps) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<CoverState>({
+    loading: false,
+    coverUrl: null,
+    error: false,
+  });
+
+  const searchByISBN = async () => {
+    if (!isbn?.trim()) return;
+    setState({ loading: true, coverUrl: null, error: false });
+    const url = await fetchCoverByISBN(isbn);
+    if (url) {
+      setState({ loading: false, coverUrl: url, error: false });
+      onCoverFound(url);
+    } else {
+      setState({ loading: false, coverUrl: null, error: true });
+    }
+  };
+
+  const searchByTitleAuthor = async () => {
+    if (!title?.trim()) return;
+    setState({ loading: true, coverUrl: null, error: false });
+    const url = await fetchCoverByTitleAuthor(title ?? '', author ?? '');
+    if (url) {
+      setState({ loading: false, coverUrl: url, error: false });
+      onCoverFound(url);
+    } else {
+      setState({ loading: false, coverUrl: null, error: true });
+    }
+  };
+
+  return (
+    <div className="book-cover-fetcher">
+      {/* Preview area: 200×300px */}
+      <div
+        className="cover-preview"
+        style={{ width: 200, height: 300, borderRadius: 8, overflow: 'hidden' }}
+      >
+        {state.loading && <CoverSkeleton />}
+        {!state.loading && state.coverUrl && (
+          <img
+            src={state.coverUrl}
+            alt="Book cover"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        )}
+        {!state.loading && !state.coverUrl && (
+          <CoverFallback label={t('cover.notFound')} />
+        )}
+      </div>
+
+      {/* Manual search trigger for title+author */}
+      {!isbn && (
+        <button type="button" onClick={searchByTitleAuthor} disabled={state.loading}>
+          {t('cover.searchByTitle')}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+The `onBlur` handler on the ISBN input field in `AdminBookFormPage` calls `searchByISBN` directly:
+
+```typescript
+// In AdminBookFormPage.tsx
+<input
+  name="isbn"
+  value={form.isbn}
+  onChange={handleChange}
+  onBlur={() => coverFetcherRef.current?.searchByISBN()}
+/>
+<BookCoverFetcher
+  ref={coverFetcherRef}
+  isbn={form.isbn}
+  title={form.title}
+  author={selectedAuthorName}
+  onCoverFound={(url) => setForm((f) => ({ ...f, coverUrl: url }))}
+/>
+```
+
+#### Updated BookCard Component
+
+`BookCard` is updated to display a cover thumbnail at 80×120px when a `coverUrl` is available, with a fallback for books without covers:
+
+```typescript
+interface BookCardProps {
+  book: Book; // Book type updated to include optional coverUrl: string | null
+}
+
+function CoverThumbnail({ coverUrl }: { coverUrl?: string | null }) {
+  if (coverUrl) {
+    return (
+      <img
+        src={coverUrl}
+        alt="Book cover"
+        style={{ width: 80, height: 120, objectFit: 'cover', borderRadius: 4 }}
+      />
+    );
+  }
+  // Fallback: dark gray background + centered book icon
+  return (
+    <div
+      className="cover-fallback-thumb"
+      style={{
+        width: 80,
+        height: 120,
+        backgroundColor: '#2a2a2a',
+        borderRadius: 4,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      aria-label="No cover available"
+    >
+      <BookIcon size={32} color="#666" />
+    </div>
+  );
+}
+
+export function BookCard({ book }: BookCardProps) {
+  return (
+    <div className="book-card">
+      <CoverThumbnail coverUrl={book.coverUrl} />
+      <div className="book-card-info">
+        <h3>{book.title}</h3>
+        <p>{book.author.name}</p>
+        <p className="isbn">{book.isbn}</p>
+      </div>
+    </div>
+  );
+}
+```
+
+#### Updated TypeScript Types
+
+```typescript
+// src/types/index.ts — updated Book interfaces
+export interface Book {
+  id: string;
+  isbn: string;
+  title: string;
+  author: { id: string; name: string };
+  publisher: { id: string; name: string };
+  coverUrl?: string | null;  // NEW — optional cover image URL
+  createdAt: string;
+}
+
+export interface BookRequest {
+  isbn: string;
+  title: string;
+  authorId: string;
+  publisherId: string;
+  coverUrl?: string | null;  // NEW — optional, sent to backend on save
+}
+```
+
+**Note on backend:** The `coverUrl` field is stored as an optional `VARCHAR` column on the `books` table (added via a new Flyway migration `V7__add_cover_url_to_books.sql`). The backend `BookRequest` and `BookResponse` DTOs are updated to include the optional `coverUrl` field. No backend business logic changes are required — the field is stored and returned as-is.
+
+---
+
+### F4 — Login Screen Redesign
+
+#### Overview
+
+The login screen is redesigned with a split-screen layout: a visually rich left panel (60% width) featuring a library background image, gradient overlay, and an inspirational quote; and a clean right panel (40% width) containing the existing login form with the GMLib logo above it.
+
+#### Layout Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    LoginPage (full viewport)                  │
+├──────────────────────────────┬──────────────────────────────┤
+│   Left Panel (60%)           │   Right Panel (40%)          │
+│                              │                              │
+│   [background image]         │   [GMLib Logo]               │
+│   + gradient overlay         │                              │
+│                              │   [Login Form]               │
+│   [Inspirational Quote]      │   - Email field              │
+│   italic, serif, white       │   - Password field           │
+│   opacity 0.85, 18px         │   - Submit button            │
+│                              │   - Register link            │
+└──────────────────────────────┴──────────────────────────────┘
+```
+
+#### LoginPage Component (`src/pages/LoginPage.tsx` — updated)
+
+```typescript
+export function LoginPage() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="login-page">
+      {/* Left panel — hidden on mobile */}
+      <div className="login-left-panel" aria-hidden="true">
+        <div className="login-bg-image" />
+        <div className="login-overlay" />
+        <blockquote className="login-quote">
+          {t('login.quote')}
+        </blockquote>
+      </div>
+
+      {/* Right panel — always visible */}
+      <div className="login-right-panel">
+        <img src={gmLibLogo} alt="GMLib" className="login-logo" />
+        <LoginForm />
+      </div>
+    </div>
+  );
+}
+```
+
+#### CSS Design
+
+```css
+/* Split-screen layout */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Left panel */
+.login-left-panel {
+  position: relative;
+  flex: 0 0 60%;
+  overflow: hidden;
+}
+
+.login-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/src/assets/images/login-bg.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(224, 112, 32, 0.15));
+}
+
+.login-quote {
+  position: relative; /* above overlay */
+  z-index: 1;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 18px;
+  line-height: 1.6;
+  padding: 2rem;
+  margin: auto 0 3rem;
+}
+
+/* Right panel */
+.login-right-panel {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #1a1a1a;
+  padding: 2rem;
+}
+
+.login-logo {
+  width: 120px;
+  margin-bottom: 2rem;
+}
+
+/* Mobile: hide left panel, use image as blurred background */
+@media (max-width: 767px) {
+  .login-left-panel {
+    display: none;
+  }
+
+  .login-right-panel {
+    flex: 1;
+    position: relative;
+    background-image: url('/src/assets/images/login-bg.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .login-right-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(8px);
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  .login-right-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+```
+
+#### Background Image Fallback
+
+If the background image fails to load (external URL unavailable or local file missing), the CSS `background-image` property simply renders nothing, and the `background-color` on `.login-left-panel` provides the fallback:
+
+```css
+.login-left-panel {
+  background-color: #1a1a1a; /* fallback if image unavailable */
+}
+```
+
+The gradient overlay and quote remain visible regardless of whether the image loads, ensuring the layout never breaks.
+
+#### Responsive Behavior Summary
+
+| Viewport | Left Panel | Right Panel |
+|---|---|---|
+| ≥ 768px | Visible (60%), background image + overlay + quote | Visible (40%), dark bg, logo + form |
+| < 768px | Hidden (`display: none`) | Full width, blurred background image behind form |
+| Image unavailable | Solid dark background (`#1a1a1a`) | Unaffected |
+
+---
+
+## New Correctness Properties (F1–F4)
+
+### Property 28: Language switcher persists preference to localStorage
+
+*For any* locale value in `{'pt-BR', 'en-US'}`, when the user selects that locale via the `LanguageSwitcher`, the value stored in `localStorage` under the key `i18n_language` SHALL equal the selected locale code, and on the next application load the interface SHALL initialize in that locale.
+
+**Validates: Requirements 13.4, 13.2**
+
+---
+
+### Property 29: getLanguageInstruction returns correct string for each locale
+
+*For any* call to `getLanguageInstruction(locale)` where `locale` is `'pt-BR'`, the function SHALL return exactly `"Responda em português do Brasil."`. *For any* call where `locale` is `'en-US'`, the function SHALL return exactly `"Reply in English (US)."`. The function SHALL never throw an exception for any string input.
+
+**Validates: Requirements 14.2, 14.3, 14.4**
+
+---
+
+### Property 30: bookCoverService returns null on network error, never throws
+
+*For any* call to `fetchCoverByISBN(isbn)` or `fetchCoverByTitleAuthor(title, author)` where the underlying network request fails (timeout, DNS failure, HTTP 4xx/5xx, malformed response), the function SHALL return `null` and SHALL NOT throw an unhandled exception or cause the calling component to enter an error state.
+
+**Validates: Requirements 15.11**
+
+---
+
+### Property 31: BookCoverFetcher shows fallback when no cover found
+
+*For any* render of `BookCoverFetcher` where the cover service returns `null` (cover not found) or encounters an error, the component SHALL display the fallback placeholder (book icon + translated "Cover not found" text) and SHALL NOT render a broken `<img>` element. Equivalently, *for any* `BookCard` rendered with `coverUrl` equal to `null` or `undefined`, the component SHALL display the dark gray fallback thumbnail rather than a broken image.
+
+**Validates: Requirements 15.5, 15.13**
+
+---
