@@ -18,6 +18,11 @@ import java.util.UUID;
 public class PanachePublisherRepository implements PublisherRepository, PanacheRepositoryBase<Publisher, UUID> {
 
     @Override
+    public Optional<Publisher> findByNormalizedName(String name) {
+        return find("LOWER(TRIM(name)) = ?1", name.toLowerCase().trim()).firstResultOptional();
+    }
+
+    @Override
     public Optional<Publisher> findByIdOptional(UUID id) {
         return Optional.ofNullable(getEntityManager().find(Publisher.class, id));
     }

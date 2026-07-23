@@ -27,6 +27,12 @@ The system is built as a modular monolith in its first iteration, with clear ser
 - **DTO**: Data Transfer Object used to decouple API input/output from domain entities.
 - **Repository**: A persistence abstraction over the database layer.
 - **Mapper**: A component that converts between domain entities and DTOs.
+- **i18n**: Internationalization — the process of designing the application to support multiple languages.
+- **Locale**: A language/region code such as `pt-BR` (Brazilian Portuguese) or `en-US` (American English).
+- **LanguageSwitcher**: A UI component that allows the user to toggle between supported locales.
+- **BookCoverFetcher**: A UI component that searches for and previews a book cover image based on ISBN, title, or author.
+- **bookCoverService**: A frontend service module that calls external cover image APIs (Open Library, Google Books) and returns a cover URL or null.
+- **getLanguageInstruction**: A utility function that returns the appropriate language instruction string for AI API prompts based on the active locale.
 
 ---
 
@@ -226,6 +232,85 @@ The system is built as a modular monolith in its first iteration, with clear ser
 3. THE System SHALL log all unhandled exceptions at ERROR level with a correlation ID.
 4. WHEN a request is received, THE System SHALL assign a correlation ID and include it in all log entries for that request.
 5. THE System SHALL expose a health check endpoint at `GET /q/health` that returns the status of the application and its database connection.
+
+---
+
+---
+
+### Requirement 13: Internationalization — Language Switcher (PT-BR / EN-US)
+
+**User Story:** As a user, I want to switch the application language between Portuguese (PT-BR) and English (EN-US), so that I can use the interface in my preferred language.
+
+#### Acceptance Criteria
+
+1. THE Frontend SHALL support two locales: `pt-BR` (default) and `en-US`, implemented using `react-i18next` and `i18next`.
+2. WHEN the application loads for the first time, THE Frontend SHALL display the interface in `pt-BR` unless a previously saved language preference exists in `localStorage`.
+3. WHEN a User selects a different language via the language switcher, THE Frontend SHALL update all visible UI text immediately without reloading the page.
+4. WHEN a User selects a language, THE Frontend SHALL persist the selected language code in `localStorage` under the key `i18n_language` so that the preference is restored on the next session.
+5. THE Frontend SHALL expose the active language and a language-change function via the `useTranslation()` hook from `react-i18next`, making it available to all components.
+6. THE Frontend SHALL translate all static UI text, including: form labels and placeholders, page and section titles, button labels (Save, Cancel, Edit, Delete, etc.), error and validation messages, empty-state messages, navigation menu items, and tooltips.
+7. THE Frontend SHALL include a `LanguageSwitcher` component rendered in the Navbar, positioned on the right side before any avatar or profile element.
+8. THE LanguageSwitcher SHALL display as a compact inline toggle showing "PT | EN" with a separator, with the active language highlighted in the brand orange color (`#E07020`).
+9. THE LanguageSwitcher SHALL toggle directly between the two languages on click, without displaying a dropdown menu.
+10. THE Frontend SHALL store all Portuguese strings in `src/i18n/locales/pt-BR.json` and all English strings in `src/i18n/locales/en-US.json`.
+11. THE Frontend SHALL configure `i18next` in `src/i18n/index.ts`, initializing with `localStorage` language detection and fallback to `pt-BR`.
+
+---
+
+### Requirement 14: Recommendations in the Active Language
+
+**User Story:** As a user, I want book recommendations to be delivered in the language I have selected, so that the recommendation content is consistent with the rest of the interface.
+
+#### Acceptance Criteria
+
+1. WHEN the Recommendation_Service generates recommendations via an external AI API (e.g., OpenAI, Claude, Gemini), THE Frontend SHALL include a language instruction in the prompt sent to the API, derived from the currently active `i18next` locale.
+2. THE Frontend SHALL provide a utility function `getLanguageInstruction(locale: string): string` in `src/utils/getLanguageInstruction.ts` that returns `"Responda em português do Brasil."` when the locale is `pt-BR` and `"Reply in English (US)."` when the locale is `en-US`.
+3. WHEN the active language is `pt-BR`, THE Frontend SHALL append the instruction `"Responda em português do Brasil."` to any prompt sent to the AI recommendation API.
+4. WHEN the active language is `en-US`, THE Frontend SHALL append the instruction `"Reply in English (US)."` to any prompt sent to the AI recommendation API.
+5. WHERE recommendations are generated from rule-based or local data rather than an AI API, THE Frontend SHALL use `i18next` translation keys for all recommendation text, with corresponding entries in `pt-BR.json` and `en-US.json`.
+6. WHEN a User switches language, THE Frontend SHALL ensure that newly fetched recommendations are requested in the newly active language.
+7. WHERE the recommendation display includes a language badge, THE Frontend SHALL show `"Gerado em PT"` or `"Generated in EN"` to indicate the language in which the recommendation was generated.
+
+---
+
+### Requirement 15: Automatic Book Cover Search
+
+**User Story:** As a user registering or editing a book, I want the system to automatically search for and display the book's cover image, so that my library has visual representations of each book.
+
+#### Acceptance Criteria
+
+1. WHEN a User fills in the ISBN field in the book registration or edit form and the field loses focus (`onBlur`), THE Frontend SHALL automatically call the cover search service using the ISBN as the primary lookup key.
+2. WHEN a User fills in the Title and Author fields and the ISBN is not available, THE Frontend SHALL allow triggering a cover search using the title and author as fallback lookup keys.
+3. WHILE a cover search is in progress, THE Frontend SHALL display a loading spinner or skeleton in the cover preview area.
+4. WHEN a cover image is found, THE Frontend SHALL display a preview of the image at 200×300px with `object-fit: cover`, a subtle border, and `border-radius: 8px`.
+5. IF a cover search returns no result or encounters a network error, THEN THE Frontend SHALL display a placeholder with a book icon and the text `"Capa não encontrada"` (PT-BR) or `"Cover not found"` (EN-US), respecting the active language.
+6. WHEN a cover is found and displayed, THE User SHALL be able to accept the found cover or manually upload a different image.
+7. WHEN a book is saved, THE Frontend SHALL include the cover image URL in the book data sent to the backend.
+8. THE Frontend SHALL implement a `BookCoverFetcher` component in `src/components/BookCoverFetcher.tsx` with props `isbn?`, `title?`, `author?`, and `onCoverFound(url: string)`, and internal state for `loading`, `coverUrl`, and `error`.
+9. THE Frontend SHALL implement a `bookCoverService` in `src/services/bookCoverService.ts` exposing `fetchCoverByISBN(isbn: string): Promise<string | null>` and `fetchCoverByTitleAuthor(title: string, author: string): Promise<string | null>`.
+10. THE bookCoverService SHALL use the Open Library Covers API (`https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg`) as the primary source, with a fallback search via `https://openlibrary.org/search.json?title={title}&author={author}`.
+11. IF a network error occurs during cover retrieval, THEN THE bookCoverService SHALL return `null` and SHALL NOT throw an unhandled exception or break the form.
+12. WHEN displaying a book in any list or card view, THE Frontend SHALL show the cover image if available, at 80×120px with `object-fit: cover`.
+13. IF a book has no cover image, THEN THE Frontend SHALL display a dark gray background with a centered book icon as a visual fallback in all card and list views.
+
+---
+
+### Requirement 16: Thematic Background on the Login Screen
+
+**User Story:** As a user, I want the login screen to have a visually appealing library-themed background, so that the application makes a strong first impression.
+
+#### Acceptance Criteria
+
+1. THE Login screen SHALL be divided into two panels: a left panel (60% width) containing a background image and an inspirational quote, and a right panel (40% width) containing the login form on a dark background.
+2. THE left panel SHALL display a library or bookshelf background image with a semi-transparent dark overlay using `linear-gradient(135deg, rgba(0,0,0,0.7), rgba(224,112,32,0.15))` to maintain readability and reinforce brand identity.
+3. THE left panel SHALL display an inspirational reading quote in italic, serif font, white color at 0.85 opacity, and 18px font size.
+4. WHEN the active language is `pt-BR`, THE left panel SHALL display the quote: `"Um leitor vive mil vidas antes de morrer. Quem nunca lê, vive apenas uma." — George R.R. Martin`.
+5. WHEN the active language is `en-US`, THE left panel SHALL display the quote: `"A reader lives a thousand lives before he dies. The man who never reads lives only one." — George R.R. Martin`.
+6. THE right panel SHALL display the GMLib logo centered above the login form.
+7. THE background image SHALL use `object-fit: cover` and `object-position: center` to fill the left panel at all viewport sizes.
+8. WHILE the viewport width is less than 768px, THE Frontend SHALL hide the left panel and display only the login form, using the background image as a blurred full-screen background behind the form.
+9. IF the external background image URL is unavailable, THEN THE Frontend SHALL fall back to a solid dark background color so that the login form remains fully functional and readable.
+10. THE Login screen layout SHALL NOT break or obscure the existing login form fields, validation messages, or submit button.
 
 ---
 
@@ -449,6 +534,19 @@ All events are JSON-serialized and published to the Event_Bus.
 | `/admin/publishers/:id/edit` | `AdminPublisherFormPage` | Yes (ADMIN) | Edit publisher form |
 | `/readings` | `MyReadingsPage` | Yes | User's reading list with filters |
 | `/readings/:id` | `ReadingDetailPage` | Yes | Reading detail with review/rating form |
+| `/recommendations` | `RecommendationsPage` | Yes | AI-generated book recommendations |
+
+### New Frontend Components (F1–F4)
+
+| Component / File | Description |
+|---|---|
+| `src/i18n/index.ts` | i18next configuration with localStorage language detection and pt-BR fallback |
+| `src/i18n/locales/pt-BR.json` | All UI strings in Brazilian Portuguese |
+| `src/i18n/locales/en-US.json` | All UI strings in American English |
+| `src/components/LanguageSwitcher.tsx` | Inline "PT \| EN" toggle rendered in the Navbar |
+| `src/utils/getLanguageInstruction.ts` | Returns AI prompt language instruction based on active locale |
+| `src/components/BookCoverFetcher.tsx` | Cover preview component with loading/error states |
+| `src/services/bookCoverService.ts` | Open Library / Google Books cover fetch service |
 
 ---
 
@@ -522,3 +620,10 @@ Modules communicate only through:
 3. Implement LLM integration for book suggestions based on user ratings and reviews
 4. Expose `GET /recommendations` endpoint
 5. Frontend screen: Recommendations page
+
+### Phase 4 — Frontend Enhancements (F1–F4)
+
+1. **F1 — Internationalization**: Install `react-i18next` + `i18next`; create `src/i18n/index.ts` and locale JSON files; wrap app with `I18nextProvider`; add `LanguageSwitcher` to Navbar; translate all static UI text.
+2. **F2 — Language-aware Recommendations**: Implement `getLanguageInstruction` utility; integrate locale into AI API prompt construction; ensure recommendation text uses i18n keys for rule-based content.
+3. **F4 — Login Screen Background**: Redesign `LoginPage` with split-screen layout; add library background image with gradient overlay; add translated inspirational quote; implement mobile responsive fallback.
+4. **F3 — Automatic Cover Search**: Implement `bookCoverService` with Open Library API integration; build `BookCoverFetcher` component; integrate into book registration and edit forms; display cover thumbnails in book cards and list views.

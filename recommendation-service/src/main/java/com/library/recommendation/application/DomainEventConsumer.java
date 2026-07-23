@@ -43,6 +43,7 @@ public class DomainEventConsumer {
             String eventType = root.path("eventType").asText();
 
             switch (eventType) {
+                case "reading.created" -> handleReadingCreated(root.path("payload"));
                 case "rating.updated"   -> handleRatingUpdated(root.path("payload"));
                 case "review.submitted" -> handleReviewSubmitted(root.path("payload"));
                 default -> log.debugf("Ignoring event type: %s", eventType);
@@ -53,13 +54,21 @@ public class DomainEventConsumer {
         }
     }
 
+    private void handleReadingCreated(JsonNode payload) {
+        UUID userId = UUID.fromString(payload.path("userId").asText());
+        UUID bookId = UUID.fromString(payload.path("bookId").asText());
+        history.record(userId, bookId, textOrNull(payload, "bookTitle"),
+                textOrNull(payload, "publisherName"), null, null);
+    }
+
     private void handleRatingUpdated(JsonNode payload) {
         UUID userId = UUID.fromString(payload.path("userId").asText());
         UUID bookId = UUID.fromString(payload.path("bookId").asText());
         double rating = payload.path("rating").asDouble();
 
         // Book title is not in the event payload — use bookId as fallback label
-        history.record(userId, "book:" + bookId, rating, null);
+        history.record(userId, bookId, textOrNull(payload, "bookTitle"),
+                textOrNull(payload, "publisherName"), rating, null);
         log.debugf("Recorded rating %.1f for user %s, book %s", rating, userId, bookId);
     }
 
@@ -68,7 +77,13 @@ public class DomainEventConsumer {
         UUID bookId = UUID.fromString(payload.path("bookId").asText());
         String review = payload.path("review").asText(null);
 
-        history.record(userId, "book:" + bookId, null, review);
+        history.record(userId, bookId, textOrNull(payload, "bookTitle"),
+                textOrNull(payload, "publisherName"), null, review);
         log.debugf("Recorded review for user %s, book %s", userId, bookId);
+    }
+
+    private String textOrNull(JsonNode payload, String field) {
+        String value = payload.path(field).asText(null);
+        return value == null || value.isBlank() ? null : value;
     }
 }

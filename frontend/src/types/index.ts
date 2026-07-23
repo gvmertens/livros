@@ -61,6 +61,7 @@ export type ReadingStatus = 'WANT_TO_READ' | 'READING' | 'FINISHED' | 'ABANDONED
 export interface BookSummary {
   id: string;
   title: string;
+  publisher: string;
 }
 
 export interface Reading {
@@ -96,7 +97,11 @@ export interface ErrorResponse {
 // ── Recommendation ────────────────────────────────────────────────────────────
 
 export interface RecommendationResponse {
-  recommendations: string[];
+  criteriaSummary: string;
+  recommendations: Array<{
+    title: string;
+    publisher: string;
+  }>;
 }
 
 // ── Auth state (decoded JWT payload) ─────────────────────────────────────────

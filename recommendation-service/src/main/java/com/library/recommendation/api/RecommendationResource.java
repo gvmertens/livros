@@ -39,15 +39,14 @@ public class RecommendationResource {
     public RecommendationResponse getRecommendations(@Context SecurityContext securityContext) {
         String sub = jwt.getSubject();
         if (sub == null) {
-            return new RecommendationResponse(List.of());
+            return new RecommendationResponse("", List.of());
         }
 
         try {
             UUID userId = UUID.fromString(sub);
-            List<String> recommendations = recommendationService.recommend(userId);
-            return new RecommendationResponse(recommendations);
+            return recommendationService.recommend(userId);
         } catch (IllegalArgumentException e) {
-            return new RecommendationResponse(List.of());
+            return new RecommendationResponse("", List.of());
         }
     }
 }

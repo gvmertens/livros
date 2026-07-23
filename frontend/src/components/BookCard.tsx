@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Book } from '../types';
+import { theme } from '../theme';
 
 interface Props {
   book: Book;
@@ -12,6 +14,8 @@ interface Props {
  * Requirements: 7.5
  */
 export default function BookCard({ book }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Link
       to={`/books/${book.id}`}
@@ -20,25 +24,52 @@ export default function BookCard({ book }: Props) {
     >
       <article
         style={{
-          border: '1px solid #ddd',
-          borderRadius: 8,
-          padding: '16px 20px',
+          background: '#1E1E1E',
+          border: `1px solid ${theme.colors.neutral800}`,
+          borderRadius: theme.radius.md,
+          padding: `${theme.spacing.base}px ${theme.spacing.lg}px`,
           cursor: 'pointer',
-          transition: 'box-shadow 0.15s',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+          const el = e.currentTarget as HTMLElement;
+          el.style.borderColor = theme.colors.primary;
+          el.style.boxShadow = `0 0 0 1px ${theme.colors.primary}`;
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+          const el = e.currentTarget as HTMLElement;
+          el.style.borderColor = theme.colors.neutral800;
+          el.style.boxShadow = 'none';
         }}
       >
-        <h3 style={{ margin: '0 0 6px', fontSize: 16 }}>{book.title}</h3>
-        <p style={{ margin: '0 0 4px', fontSize: 14, opacity: 0.75 }}>
-          by {book.author.name}
+        <h3
+          style={{
+            margin: '0 0 6px',
+            fontSize: theme.fontSizes.md,
+            fontWeight: 600,
+            color: theme.colors.white,
+          }}
+        >
+          {book.title}
+        </h3>
+        <p
+          style={{
+            margin: '0 0 4px',
+            fontSize: theme.fontSizes.sm,
+            color: theme.colors.neutral400,
+          }}
+        >
+          {t('books.by')} {book.author.name}
         </p>
-        <p style={{ margin: 0, fontSize: 12, opacity: 0.55, fontFamily: 'monospace' }}>
-          ISBN: {book.isbn}
+        <p
+          style={{
+            margin: 0,
+            fontSize: theme.fontSizes.xs,
+            color: theme.colors.neutral600,
+            fontFamily: 'monospace',
+          }}
+        >
+          {t('books.isbn')}: {book.isbn}
         </p>
       </article>
     </Link>

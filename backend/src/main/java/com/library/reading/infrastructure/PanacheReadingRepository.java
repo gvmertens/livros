@@ -31,9 +31,11 @@ public class PanacheReadingRepository implements ReadingRepository, PanacheRepos
     public PageResponse<Reading> findByUserId(UUID userId, ReadingStatus status, PageRequest page) {
         io.quarkus.hibernate.orm.panache.PanacheQuery<Reading> query;
         if (status == null) {
-            query = find("userId", userId).page(page.page(), page.size());
+            query = find("userId = ?1 ORDER BY rating ASC NULLS LAST, createdAt ASC", userId)
+                    .page(page.page(), page.size());
         } else {
-            query = find("userId = ?1 AND status = ?2", userId, status).page(page.page(), page.size());
+            query = find("userId = ?1 AND status = ?2 ORDER BY rating ASC NULLS LAST, createdAt ASC", userId, status)
+                    .page(page.page(), page.size());
         }
         List<Reading> readings = query.list();
         long total = query.count();
@@ -47,6 +49,11 @@ public class PanacheReadingRepository implements ReadingRepository, PanacheRepos
         } else {
             getEntityManager().merge(reading);
         }
+    }
+
+    @Override
+    public void flush() {
+        getEntityManager().flush();
     }
 
     @Override

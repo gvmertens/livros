@@ -58,9 +58,10 @@ public class ReadingServiceImpl implements ReadingService {
                 UUID.randomUUID(),
                 "reading.created",
                 Instant.now(),
-                new ReadingCreatedPayload(reading.id, reading.userId, reading.bookId, reading.status.name())));
+                new ReadingCreatedPayload(reading.id, reading.userId, reading.bookId, book.title,
+                        publisherName(book), reading.status.name())));
 
-        return toResponse(reading, new BookSummary(book.id, book.title));
+        return toResponse(reading, new BookSummary(book.id, book.title, publisherName(book)));
     }
 
     @Override
@@ -122,27 +123,33 @@ public class ReadingServiceImpl implements ReadingService {
 
         readingRepository.persist(reading);
 
+        Book book = (Book) Book.findByIdOptional(reading.bookId).orElse(null);
+
         // Publish events conditionally
         if (ratingChanged) {
             eventBus.publish(new DomainEventEnvelope(
                     UUID.randomUUID(),
                     "rating.updated",
                     Instant.now(),
-                    new RatingUpdatedPayload(reading.id, reading.userId, reading.bookId, reading.rating)));
+                    new RatingUpdatedPayload(reading.id, reading.userId, reading.bookId,
+                            book != null ? book.title : null,
+                            publisherName(book),
+                            reading.rating)));
         }
         if (reviewChanged) {
             eventBus.publish(new DomainEventEnvelope(
                     UUID.randomUUID(),
                     "review.submitted",
                     Instant.now(),
-                    new ReviewSubmittedPayload(reading.id, reading.userId, reading.bookId, reading.review)));
+                    new ReviewSubmittedPayload(reading.id, reading.userId, reading.bookId,
+                            book != null ? book.title : null,
+                            publisherName(book),
+                            reading.review)));
         }
 
-        Book book = (Book) Book.findByIdOptional(reading.bookId)
-                .orElse(null);
         BookSummary bookSummary = book != null
-                ? new BookSummary(book.id, book.title)
-                : new BookSummary(reading.bookId, null);
+                ? new BookSummary(book.id, book.title, publisherName(book))
+                : new BookSummary(reading.bookId, null, null);
 
         return toResponse(reading, bookSummary);
     }
@@ -167,8 +174,8 @@ public class ReadingServiceImpl implements ReadingService {
                 .map(reading -> {
                     Book book = (Book) Book.findByIdOptional(reading.bookId).orElse(null);
                     BookSummary bookSummary = book != null
-                            ? new BookSummary(book.id, book.title)
-                            : new BookSummary(reading.bookId, null);
+                            ? new BookSummary(book.id, book.title, publisherName(book))
+                            : new BookSummary(reading.bookId, null, null);
                     return toResponse(reading, bookSummary);
                 })
                 .toList();
@@ -187,8 +194,8 @@ public class ReadingServiceImpl implements ReadingService {
 
         Book book = (Book) Book.findByIdOptional(reading.bookId).orElse(null);
         BookSummary bookSummary = book != null
-                ? new BookSummary(book.id, book.title)
-                : new BookSummary(reading.bookId, null);
+                ? new BookSummary(book.id, book.title, publisherName(book))
+                : new BookSummary(reading.bookId, null, null);
 
         return toResponse(reading, bookSummary);
     }
@@ -204,5 +211,9 @@ public class ReadingServiceImpl implements ReadingService {
                 reading.finishedAt,
                 reading.createdAt,
                 reading.updatedAt);
+    }
+
+    private String publisherName(Book book) {
+        return book != null && book.publisher != null ? book.publisher.name : null;
     }
 }
